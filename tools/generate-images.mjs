@@ -30,8 +30,9 @@ const BASE_PROMPT = (pose) =>
   `Full body visible including feet, character centered, same size and ` +
   `framing in every image. Simple rounded shapes, no facial features, no ` +
   `outlines. Flat matte solid colors only: dark teal shirt, teal shorts, ` +
-  `warm beige skin. Absolutely no background, no glow, no gradients, no ` +
-  `lighting effects, no shadows, no floor, no props, no text. ` +
+  `warm beige skin. The entire background is one single uniform flat pale ` +
+  `mint green color (#E9F7F1) with absolutely no gradients, no glow, no ` +
+  `lighting effects, no shadows, no floor line, no props, no text. ` +
   `Square 1:1 format.`;
 
 /* Pose pro Übungs-ID. Bei Links/Rechts-Übungen genügt eine Richtung –
@@ -89,7 +90,6 @@ async function generate(id, pose) {
     form.append('prompt', `Same character, outfit and art style as the reference image, now ${pose}. ${BASE_PROMPT(pose)}`);
     form.append('size', '1024x1024');
     form.append('quality', quality);
-    form.append('background', 'transparent');
     form.append('image[]', new Blob([readFileSync(REFERENCE)], { type: 'image/png' }), '_reference.png');
     res = await fetch('https://api.openai.com/v1/images/edits', {
       method: 'POST',
@@ -105,7 +105,6 @@ async function generate(id, pose) {
         prompt,
         size: '1024x1024',
         quality,
-        background: 'transparent',
         output_format: 'png',
       }),
     });

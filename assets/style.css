@@ -48,12 +48,13 @@
 .figure .fig-head { fill: currentColor; stroke: none; }
 .figure .accent-stroke { stroke: var(--accent); }
 
-/* Illustrationen (assets/img): weicher Blob dahinter, wie bei den SVG-Figuren */
+/* Illustrationen (assets/img): Bilder haben einen einfarbigen Mint-
+ * Hintergrund und werden rund zugeschnitten – gleicher Look wie der
+ * Blob hinter den SVG-Figuren. */
 img.figure-img {
-  object-fit: contain;
-  background: radial-gradient(closest-side, var(--accent-soft) 78%, transparent 80%);
-  padding: 6%;
-  box-sizing: border-box;
+  object-fit: cover;
+  border-radius: 50%;
+  aspect-ratio: 1;
 }
 /* Rechte Seite: Figur spiegeln statt doppelt generieren.
  * Auf dem Container, damit die breathe-Animation (transform auf .figure)
