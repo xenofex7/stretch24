@@ -61,3 +61,5 @@ angenehmen Zug, nie in den Schmerz.
 ## Lizenz
 
 [MIT](LICENSE) – nutze, kopiere und verändere die App, wie du magst.
+
+UI-Icons: [Lucide](https://lucide.dev) (ISC-Lizenz), als Inline-SVG eingebettet.

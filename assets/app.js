@@ -59,7 +59,7 @@
     parts.push(`${stats.sessions} Session${stats.sessions === 1 ? '' : 's'}`);
     parts.push(`${stats.minutes} Min gesamt`);
     $('#streak-text').textContent = parts.join(' · ');
-    $('#streak-flame').textContent = streak > 0 ? '🔥' : '🌱';
+    $('#streak-flame').innerHTML = streak > 0 ? ICONS.flame : ICONS.sprout;
   }
 
   /* ===== Home rendern ===== */
@@ -72,7 +72,7 @@
     const card = document.createElement('button');
     card.className = 'routine-card';
     card.innerHTML = `
-      <span class="emoji">${routine.emoji}</span>
+      <span class="routine-icon">${ICONS[routine.icon] || ICONS.star}</span>
       <h3>${routine.name}</h3>
       <p>${routine.blurb || `${routine.items.length} Übungen, selbst zusammengestellt.`}</p>
       <span class="meta">≈ ${routineDuration(routine)} Min · ${routine.items.length} Übungen</span>`;
@@ -80,7 +80,7 @@
     if (deletable) {
       const del = document.createElement('button');
       del.className = 'delete';
-      del.textContent = '🗑';
+      del.innerHTML = ICONS.trash;
       del.setAttribute('aria-label', `${routine.name} löschen`);
       del.addEventListener('click', (ev) => {
         ev.stopPropagation();
@@ -245,7 +245,11 @@
     $('#player-hint').textContent = step.ex.desc;
     const badge = $('#side-badge');
     badge.hidden = !step.side;
-    if (step.side) badge.textContent = step.side === 'links' ? '◀ Linke Seite' : 'Rechte Seite ▶';
+    if (step.side) {
+      badge.innerHTML = step.side === 'links'
+        ? `${ICONS.chevronLeft}<span>Linke Seite</span>`
+        : `<span>Rechte Seite</span>${ICONS.chevronRight}`;
+    }
 
     const next = player.steps[player.index + 1];
     $('#player-next').textContent = next
@@ -302,7 +306,7 @@
 
   function setPaused(paused) {
     player.paused = paused;
-    $('#btn-pause').textContent = paused ? '▶' : '⏸';
+    $('#btn-pause').innerHTML = paused ? ICONS.play : ICONS.pause;
     $('#view-player').classList.toggle('paused', paused);
     if (paused) speechSynthesis?.cancel?.();
   }
@@ -327,9 +331,9 @@
     $('#done-summary').textContent = player.single
       ? `${player.routineName} – schön dranbleiben!`
       : `${player.routineName} · ${player.steps.length} Übungen · ca. ${minutes} Minuten.`;
-    $('#done-streak').textContent = streak > 1
-      ? `🔥 ${streak} Tage in Folge – stark!`
-      : '🌱 Streak gestartet – bis morgen!';
+    $('#done-streak').innerHTML = streak > 1
+      ? `${ICONS.flame} ${streak} Tage in Folge – stark!`
+      : `${ICONS.sprout} Streak gestartet – bis morgen!`;
     show('view-done');
     speak('Geschafft. Gut gemacht!');
   }
@@ -346,10 +350,10 @@
   $('#btn-sound').addEventListener('click', () => {
     soundOn = !soundOn;
     store.set('sound', soundOn);
-    $('#btn-sound').textContent = soundOn ? '🔊' : '🔇';
+    $('#btn-sound').innerHTML = soundOn ? ICONS.volume : ICONS.volumeX;
     if (!soundOn) { try { speechSynthesis?.cancel?.(); } catch {} }
   });
-  $('#btn-sound').textContent = soundOn ? '🔊' : '🔇';
+  $('#btn-sound').innerHTML = soundOn ? ICONS.volume : ICONS.volumeX;
 
   $('#btn-done-home').addEventListener('click', () => { show('view-home'); renderHome(); });
 
@@ -413,7 +417,7 @@
     const custom = store.get('custom', []);
     custom.push({
       id: 'c' + Date.now().toString(36),
-      emoji: '⭐',
+      icon: 'star',
       name,
       secs: Number($('#builder-secs').value),
       items: [...builderSelection],
@@ -422,6 +426,15 @@
     renderHome();
     show('view-home');
   });
+
+  /* ===== Statische Icons einsetzen ===== */
+  $('#btn-quit').innerHTML = ICONS.x;
+  $('#btn-prev').innerHTML = ICONS.skipBack;
+  $('#btn-pause').innerHTML = ICONS.pause;
+  $('#btn-next').innerHTML = ICONS.skipForward;
+  $('#done-icon').innerHTML = ICONS.party;
+  $('#btn-new-routine').insertAdjacentHTML('afterbegin', ICONS.plus);
+  $('#btn-builder-back').insertAdjacentHTML('afterbegin', ICONS.arrowLeft);
 
   /* ===== Start ===== */
   renderHome();

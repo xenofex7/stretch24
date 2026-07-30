@@ -172,24 +172,24 @@ const EXERCISES = [
     desc: 'Hände an die Wand, ein Bein lang nach hinten, Ferse am Boden. Hüfte zur Wand schieben, bis es in der Wade zieht.' },
 ];
 
-/* Routinen: items = Übungs-IDs, secs = Sekunden pro Seite/Übung */
+/* Routinen: items = Übungs-IDs, secs = Sekunden pro Seite/Übung, icon = Lucide-Icon aus icons.js */
 const ROUTINES = [
-  { id: 'morning', emoji: '🌅', name: 'Guten Morgen', secs: 25,
+  { id: 'morning', icon: 'sunrise', name: 'Guten Morgen', secs: 25,
     blurb: 'Sanft wach werden – Ganzkörper in 5 Minuten.',
     items: ['full-stretch', 'cat-cow', 'down-dog', 'forward-fold', 'side-bend', 'neck-side', 'shoulder-roll'] },
-  { id: 'desk', emoji: '💻', name: 'Schreibtisch-Pause', secs: 25,
+  { id: 'desk', icon: 'laptop', name: 'Schreibtisch-Pause', secs: 25,
     blurb: 'Nacken, Schultern & Handgelenke – im Stehen, ohne Matte.',
     items: ['shoulder-roll', 'neck-side', 'neck-front', 'shoulder-cross', 'triceps', 'wrist', 'chest-opener', 'side-bend'] },
-  { id: 'fullbody15', emoji: '🧘', name: 'Full Body 15', secs: 35,
+  { id: 'fullbody15', icon: 'personStanding', name: 'Full Body 15', secs: 35,
     blurb: 'Der Klassiker: einmal alles, in einer Viertelstunde.',
     items: ['neck-side', 'shoulder-cross', 'chest-opener', 'cat-cow', 'down-dog', 'lunge', 'hamstring', 'quad', 'butterfly', 'seated-twist', 'child'] },
-  { id: 'back', emoji: '🌿', name: 'Rücken-Reset', secs: 35,
+  { id: 'back', icon: 'leaf', name: 'Rücken-Reset', secs: 35,
     blurb: 'Länge und Entspannung für die Wirbelsäule.',
     items: ['cat-cow', 'child', 'cobra', 'down-dog', 'seated-twist', 'supine-twist', 'fig4', 'full-stretch'] },
-  { id: 'hips', emoji: '🦵', name: 'Hüft-Öffner', secs: 40,
+  { id: 'hips', icon: 'expand', name: 'Hüft-Öffner', secs: 40,
     blurb: 'Für alle, die viel sitzen: Hüfte, Gesäß & Leiste.',
     items: ['hip-flexor', 'lunge', 'pigeon', 'butterfly', 'fig4', 'supine-twist'] },
-  { id: 'runner', emoji: '🏃', name: 'Nach dem Sport', secs: 30,
+  { id: 'runner', icon: 'dumbbell', name: 'Nach dem Sport', secs: 30,
     blurb: 'Beine & Waden nach Laufen, Rad oder Training.',
     items: ['quad', 'hamstring', 'calf', 'hip-flexor', 'fig4', 'forward-fold', 'child'] },
 ];
