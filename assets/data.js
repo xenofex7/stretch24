@@ -125,8 +125,29 @@ const POSES = {
  * so können wir die Bilder schrittweise ergänzen. */
 const IMAGES = new Set([
   'butterfly',
+  'calf',
+  'cat-cow',
+  'chest-opener',
+  'child',
+  'cobra',
   'down-dog',
+  'fig4',
+  'forward-fold',
+  'full-stretch',
+  'hamstring',
+  'hip-flexor',
+  'lunge',
+  'neck-front',
   'neck-side',
+  'pigeon',
+  'quad',
+  'seated-twist',
+  'shoulder-cross',
+  'shoulder-roll',
+  'side-bend',
+  'supine-twist',
+  'triceps',
+  'wrist',
 ]);
 
 const figureHTML = (ex) => IMAGES.has(ex.id)
