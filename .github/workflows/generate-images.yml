@@ -31,7 +31,8 @@ jobs:
 
       - name: Bilder generieren
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Secret bevorzugt; fällt auf eine Actions-Variable gleichen Namens zurück
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || vars.OPENAI_API_KEY }}
         run: |
           ARGS="--quality=${{ inputs.quality }}"
           if [ -n "${{ inputs.exercises }}" ]; then ARGS="$ARGS --only=${{ inputs.exercises }}"; fi
