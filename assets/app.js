@@ -69,7 +69,9 @@
   /* ===== Views ===== */
   function show(viewId) {
     document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
-    $('#' + viewId).classList.add('active');
+    const view = $('#' + viewId);
+    view.classList.add('active');
+    view.focus({ preventScroll: true }); // Fokus mitnehmen, sonst landet er auf <body>
     window.scrollTo(0, 0);
   }
 
@@ -119,24 +121,28 @@
     card.className = 'routine-card';
     card.innerHTML = `
       <span class="routine-icon">${ICONS[routine.icon] || ICONS.star}</span>
-      <h3>${esc(routine.name)}</h3>
-      <p>${routine.blurb ? esc(routine.blurb) : `${routine.items.length} Übungen, selbst zusammengestellt.`}</p>
+      <span class="card-title">${esc(routine.name)}</span>
+      <span class="card-desc">${routine.blurb ? esc(routine.blurb) : `${routine.items.length} Übungen, selbst zusammengestellt.`}</span>
       <span class="meta">≈ ${routineDuration(routine)} Min · ${routine.items.length} Übungen</span>`;
     card.addEventListener('click', () => startRoutine(routine));
-    if (deletable) {
-      const del = document.createElement('button');
-      del.className = 'delete';
-      del.innerHTML = ICONS.trash;
-      del.setAttribute('aria-label', `${routine.name} löschen`);
-      del.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        if (!confirm(`„${routine.name}" löschen?`)) return;
-        store.set('custom', loadCustomRoutines().filter((r) => r.id !== routine.id));
-        renderHome();
-      });
-      card.appendChild(del);
-    }
-    return card;
+    if (!deletable) return card;
+
+    // Löschen-Button als Geschwister, nicht als Kind des Karten-Buttons
+    // (verschachtelte Buttons sind ungültiges HTML).
+    const slot = document.createElement('div');
+    slot.className = 'routine-slot';
+    slot.appendChild(card);
+    const del = document.createElement('button');
+    del.className = 'delete';
+    del.innerHTML = ICONS.trash;
+    del.setAttribute('aria-label', `${routine.name} löschen`);
+    del.addEventListener('click', () => {
+      if (!confirm(`"${routine.name}" löschen?`)) return;
+      store.set('custom', loadCustomRoutines().filter((r) => r.id !== routine.id));
+      renderHome();
+    });
+    slot.appendChild(del);
+    return slot;
   }
 
   function exerciseCard(ex, { onClick } = {}) {
@@ -145,8 +151,8 @@
     card.dataset.id = ex.id;
     card.innerHTML = `
       ${figureHTML(ex)}
-      <span class="name">${ex.name}</span>
-      <span class="cat">${ex.cat}</span>
+      <span class="name">${esc(ex.name)}</span>
+      <span class="cat">${esc(ex.cat)}</span>
       ${ex.sides ? '<span class="sides-tag">links + rechts</span>' : ''}`;
     card.addEventListener('click', () => (onClick ? onClick(ex, card) : openExerciseDialog(ex)));
     return card;
@@ -176,7 +182,7 @@
 
   function openExerciseDialog(ex) {
     dialogExercise = ex;
-    $('#dialog-pose').innerHTML = figureHTML(ex);
+    $('#dialog-pose').innerHTML = figureHTML(ex, { eager: true });
     $('#dialog-title').textContent = ex.name;
     $('#dialog-desc').textContent = ex.desc;
     dialog.showModal();
@@ -286,10 +292,13 @@
     const step = player.steps[player.index];
     player.remaining = step.secs;
 
-    $('#pose-figure').innerHTML = figureHTML(step.ex);
+    $('#pose-figure').innerHTML = figureHTML(step.ex, { eager: true });
     $('#pose-figure').classList.toggle('flip', step.side === 'rechts');
     $('#player-title').textContent = step.ex.name;
     $('#player-hint').textContent = step.ex.desc;
+    $('#player-announce').textContent = step.side
+      ? `${step.ex.name}, ${step.side === 'links' ? 'linke' : 'rechte'} Seite, ${step.secs} Sekunden`
+      : `${step.ex.name}, ${step.secs} Sekunden`;
     const badge = $('#side-badge');
     badge.hidden = !step.side;
     if (step.side) {
@@ -319,10 +328,10 @@
     const step = player.steps[player.index];
     const ring = $('#ring-fg');
     if (reset) {
-      ring.style.transition = 'none';
+      ring.classList.add('no-anim');
       ring.style.strokeDashoffset = '0';
       void ring.getBoundingClientRect(); // Reflow, damit der Reset ohne Animation greift
-      ring.style.transition = '';
+      ring.classList.remove('no-anim');
     }
     ring.style.strokeDashoffset = String(RING_CIRC * (1 - player.remaining / step.secs));
   }
@@ -406,7 +415,9 @@
 
   document.addEventListener('keydown', (ev) => {
     if (!player.active) return;
-    if (ev.key === ' ') { ev.preventDefault(); setPaused(!player.paused); }
+    // Space nur global abfangen, wenn kein Button fokussiert ist -
+    // sonst erwartet man dort "Aktivieren", nicht "Pause".
+    if (ev.key === ' ' && !ev.target.closest('button')) { ev.preventDefault(); setPaused(!player.paused); }
     if (ev.key === 'ArrowRight') nextStep();
     if (ev.key === 'ArrowLeft') prevStep();
     if (ev.key === 'Escape') $('#btn-quit').click();
@@ -424,26 +435,29 @@
     const grid = $('#builder-exercises');
     grid.innerHTML = '';
     EXERCISES.forEach((ex) => {
-      grid.appendChild(exerciseCard(ex, {
-        onClick: (exercise, card) => {
+      const card = exerciseCard(ex, {
+        onClick: (exercise) => {
           const pos = builderSelection.indexOf(exercise.id);
           if (pos >= 0) builderSelection.splice(pos, 1);
           else builderSelection.push(exercise.id);
           grid.querySelectorAll('.exercise-card').forEach((c) => {
             const i = builderSelection.indexOf(c.dataset.id);
             c.classList.toggle('selected', i >= 0);
+            c.setAttribute('aria-pressed', String(i >= 0));
             if (i >= 0) c.dataset.order = i + 1;
           });
           updateBuilderSummary();
         },
-      }));
+      });
+      card.setAttribute('aria-pressed', 'false');
+      grid.appendChild(card);
     });
     updateBuilderSummary();
   }
 
   function updateBuilderSummary() {
     const secs = Number($('#builder-secs').value);
-    const steps = builderSelection.reduce((n, id) => n + (exerciseById[id].sides ? 2 : 1), 0);
+    const steps = builderSelection.reduce((n, id) => n + (exerciseById[id]?.sides ? 2 : 1), 0);
     const mins = Math.round((steps * secs) / 60);
     $('#builder-summary').textContent = builderSelection.length
       ? `${builderSelection.length} Übungen · ≈ ${mins} Min`
@@ -483,5 +497,12 @@
   $('#btn-builder-back').insertAdjacentHTML('afterbegin', ICONS.arrowLeft);
 
   /* ===== Start ===== */
+  $('#ring-fg').style.strokeDasharray = String(RING_CIRC);
   renderHome();
+
+  /* ===== Service Worker =====
+   * Hier statt inline in index.html, damit die CSP ohne 'unsafe-inline' auskommt. */
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js');
+  }
 })();

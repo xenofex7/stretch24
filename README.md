@@ -2,13 +2,17 @@
 
 **Dehnen für alle. Gratis, offen, ohne Schnickschnack.**
 
-Stretch24 ist eine freie Web-App mit 24 geführten Dehnübungen – inspiriert von
-Apps wie stretch15.com, aber komplett kostenlos, ohne Account, ohne Werbung und
-ohne Datensammlung. Alles läuft direkt im Browser.
+[![Deploy](https://github.com/xenofex7/stretch24/actions/workflows/pages.yml/badge.svg)](https://github.com/xenofex7/stretch24/actions/workflows/pages.yml)
+
+**Live: <https://xenofex7.github.io/stretch24/>**
+
+Stretch24 ist eine freie Web-App mit 24 geführten Dehnübungen – komplett
+kostenlos, ohne Account, ohne Werbung und ohne Datensammlung. Alles läuft
+direkt im Browser.
 
 ## Features
 
-- 🧘 **24 Übungen** mit Anleitung und schlichten SVG-Illustrationen – von Nacken
+- 🧘 **24 Übungen** mit Anleitung und flachen Illustrationen – von Nacken
   bis Wade, sortiert nach Körperregion
 - ▶️ **Geführter Player** mit Countdown-Ring, automatischem Seitenwechsel
   (links/rechts), Sprachansagen und Signaltönen
@@ -44,29 +48,33 @@ Service Worker bleibt dann inaktiv.)
 
 ## Deployment auf GitHub Pages
 
-Repo-Einstellungen → *Pages* → Branch auswählen → fertig. Es wird nichts
-gebaut, der Repo-Inhalt ist die App.
+Jeder Push auf `main` deployt automatisch über den Workflow
+[`pages.yml`](.github/workflows/pages.yml) (Pages-Source "GitHub Actions").
+Es wird nichts gebaut, der Repo-Inhalt ist die App.
 
 ## Illustrationen generieren (optional)
 
 Die Übungs-Illustrationen liegen in `assets/img/` (eine PNG pro Übungs-ID,
-transparenter Hintergrund). Übungen ohne Bild zeigen automatisch eine
-SVG-Strichfigur als Fallback.
+512 px, flacher Mint-Hintergrund; die App schneidet sie rund zu und spiegelt
+bei Links/Rechts-Übungen per CSS).
 
 Zum Generieren per OpenAI-API (`gpt-image-1`) gibt es
 [`tools/generate-images.mjs`](tools/generate-images.mjs) und den
-GitHub-Actions-Workflow **„Generate exercise images"** (manuell startbar
+GitHub-Actions-Workflow **"Generate exercise images"** (manuell startbar
 unter *Actions*). Voraussetzung: Repo-Secret `OPENAI_API_KEY`
 (*Settings → Secrets and variables → Actions*). Der Workflow generiert nur
-fehlende Bilder, committet sie und stösst das Pages-Deployment an.
-Optional sorgt eine Stil-Referenz unter `assets/img/_reference.png` für
-konsistente Figuren über alle Bilder.
+fehlende Bilder, komprimiert sie (pngquant), committet sie und stösst das
+Pages-Deployment an. Optional sorgt eine Stil-Referenz unter
+`assets/img/_reference.png` (nicht im Repo, lokal ablegen) für konsistente
+Figuren über alle Bilder.
 
 ## Mitmachen
 
 Neue Übungen, bessere Illustrationen, Übersetzungen – Pull Requests sind
 willkommen! Übungen liegen als einfache Datenobjekte in
-[`assets/data.js`](assets/data.js).
+[`assets/data.js`](assets/data.js). Die verbindlichen Konventionen (Sprache,
+Commits, Cache-Version in `sw.js` bei jeder Asset-Änderung erhöhen) stehen
+in [`CLAUDE.md`](CLAUDE.md).
 
 ## Hinweis
 
@@ -77,4 +85,5 @@ angenehmen Zug, nie in den Schmerz.
 
 [MIT](LICENSE) – nutze, kopiere und verändere die App, wie du magst.
 
-UI-Icons: [Lucide](https://lucide.dev) (ISC-Lizenz), als Inline-SVG eingebettet.
+UI-Icons: [Lucide](https://lucide.dev) (ISC-Lizenz, siehe [NOTICE](NOTICE)),
+als Inline-SVG eingebettet. Übungs-Illustrationen KI-generiert (`gpt-image-1`).

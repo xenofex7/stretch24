@@ -19,32 +19,40 @@ on:
         default: false
         type: boolean
 
-permissions:
-  contents: write
-  actions: write
-
 jobs:
   generate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
 
       - name: Bilder generieren
         env:
-          # Secret bevorzugt; fällt auf eine Actions-Variable gleichen Namens zurück
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || vars.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Inputs via env statt direkter Interpolation in den Shell-Block
+          # (verhindert Script-Injection über Freitext-Inputs).
+          EXERCISES: ${{ inputs.exercises }}
+          QUALITY: ${{ inputs.quality }}
+          FORCE: ${{ inputs.force }}
         run: |
-          ARGS="--quality=${{ inputs.quality }}"
-          if [ -n "${{ inputs.exercises }}" ]; then ARGS="$ARGS --only=${{ inputs.exercises }}"; fi
-          if [ "${{ inputs.force }}" = "true" ]; then ARGS="$ARGS --force"; fi
+          ARGS="--quality=$QUALITY"
+          if [ -n "$EXERCISES" ]; then ARGS="$ARGS --only=$EXERCISES"; fi
+          if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force"; fi
           node tools/generate-images.mjs $ARGS
 
-      - name: Bilder verkleinern (512 px)
+      - name: Neue Bilder verkleinern & komprimieren
         run: |
-          command -v convert >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
-          for f in assets/img/*.png; do
+          sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick pngquant
+          # Nur Bilder anfassen, die dieser Lauf tatsächlich geändert hat -
+          # sonst werden bei jedem Lauf alle Bilder re-encodiert und committet.
+          CHANGED=$( { git diff --name-only -- 'assets/img/*.png'; git ls-files --others --exclude-standard -- 'assets/img/*.png'; } | sort -u )
+          if [ -z "$CHANGED" ]; then echo "Keine geänderten Bilder."; exit 0; fi
+          echo "$CHANGED" | while IFS= read -r f; do
             [ -e "$f" ] || continue
             convert "$f" -resize '512x512>' -strip "$f"
+            pngquant --force --skip-if-larger --quality=65-90 --ext .png "$f" || true
           done
           ls -la assets/img/
 
@@ -52,7 +60,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/img assets/data.js sw.js
+          git add assets/img sw.js
           if git diff --cached --quiet; then
             echo "Keine neuen Bilder – nichts zu committen."
             exit 0

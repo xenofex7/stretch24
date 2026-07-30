@@ -1,0 +1,17 @@
+# Stretch24
+
+> Freie Web-App (PWA) mit 24 geführten Dehnübungen. Komplett gratis, ohne Account, ohne Werbung, ohne Tracking, offline nutzbar. UI-Sprache Deutsch, Lizenz MIT.
+
+Stretch24 ist eine statische Single-Page-App (reines HTML/CSS/Vanilla-JS, kein Framework, kein Build-Schritt). Alle Nutzungsdaten bleiben im localStorage des Browsers.
+
+## Inhalte
+
+- App: https://xenofex7.github.io/stretch24/
+- Quellcode: https://github.com/xenofex7/stretch24
+- Übungsdaten (24 Übungen, 6 Routinen): https://github.com/xenofex7/stretch24/blob/main/assets/data.js
+- README: https://github.com/xenofex7/stretch24/blob/main/README.md
+- Lizenz (MIT): https://github.com/xenofex7/stretch24/blob/main/LICENSE
+
+## Hinweis
+
+Stretch24 ist kein Ersatz für medizinischen Rat.

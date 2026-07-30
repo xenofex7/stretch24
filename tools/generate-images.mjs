@@ -2,8 +2,8 @@
 /* Stretch24 – Illustrations-Generator (einmaliges Werkzeug, NICHT Teil der Webapp)
  *
  * Generiert die Übungs-Illustrationen über die OpenAI-Images-API (gpt-image-1)
- * und legt sie als assets/img/<id>.png ab. Danach wird die IMAGES-Liste in
- * assets/data.js und die Cache-Version in sw.js automatisch aktualisiert.
+ * und legt sie als assets/img/<id>.png ab. Danach werden die IMG_ASSETS-Liste
+ * und die Cache-Version in sw.js automatisch aktualisiert.
  *
  * Aufruf:  OPENAI_API_KEY=... node tools/generate-images.mjs [Optionen]
  *   --only=neck-side,down-dog   nur diese Übungs-IDs
@@ -131,20 +131,20 @@ function updateAppFiles(generatedCount) {
     .filter((id) => POSES[id])
     .sort();
 
-  const dataPath = resolve(ROOT, 'assets/data.js');
-  const data = readFileSync(dataPath, 'utf8');
-  const listing = ids.map((id) => `  '${id}',`).join('\n');
-  const updated = data.replace(
-    /const IMAGES = new Set\(\[[\s\S]*?\]\);/,
-    `const IMAGES = new Set([\n${listing}\n]);`
+  const swPath = resolve(ROOT, 'sw.js');
+  const sw = readFileSync(swPath, 'utf8');
+  const listing = ids.map((id) => `  'assets/img/${id}.png',`).join('\n');
+  const updated = sw.replace(
+    /const IMG_ASSETS = \[[\s\S]*?\];/,
+    `const IMG_ASSETS = [\n${listing}\n];`
   );
-  if (updated !== data) {
-    writeFileSync(dataPath, updated);
-    console.log(`IMAGES-Liste aktualisiert (${ids.length} Bilder).`);
+  if (updated !== sw) {
+    writeFileSync(swPath, updated);
+    console.log(`IMG_ASSETS-Liste aktualisiert (${ids.length} Bilder).`);
   }
   // Cache-Version IMMER erhöhen, wenn Bilder neu geschrieben wurden – sonst
   // liefert der Service Worker Nutzer:innen ewig die alten Bilder aus.
-  if (updated !== data || generatedCount > 0) {
+  if (updated !== sw || generatedCount > 0) {
     bumpSwVersion();
     console.log('Service-Worker-Cache-Version erhöht.');
   }
