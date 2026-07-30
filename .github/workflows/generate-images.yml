@@ -1,0 +1,58 @@
+name: Generate exercise images
+
+on:
+  workflow_dispatch:
+    inputs:
+      exercises:
+        description: 'Nur diese Übungs-IDs (Komma-getrennt); leer = alle fehlenden'
+        required: false
+        default: ''
+      quality:
+        description: 'Bildqualität'
+        required: false
+        default: 'high'
+        type: choice
+        options: [low, medium, high]
+      force:
+        description: 'Vorhandene Bilder überschreiben'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bilder generieren
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          ARGS="--quality=${{ inputs.quality }}"
+          if [ -n "${{ inputs.exercises }}" ]; then ARGS="$ARGS --only=${{ inputs.exercises }}"; fi
+          if [ "${{ inputs.force }}" = "true" ]; then ARGS="$ARGS --force"; fi
+          node tools/generate-images.mjs $ARGS
+
+      - name: Committen & pushen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/img assets/data.js sw.js
+          if git diff --cached --quiet; then
+            echo "Keine neuen Bilder – nichts zu committen."
+            exit 0
+          fi
+          git commit -m "KI-Illustrationen generiert (gpt-image-1)"
+          git push
+
+      - name: Pages-Deploy anstoßen
+        # Pushes mit GITHUB_TOKEN lösen keine anderen Workflows aus,
+        # deshalb wird das Deployment hier explizit gestartet.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main || true

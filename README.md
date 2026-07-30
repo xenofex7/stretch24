@@ -47,6 +47,21 @@ Service Worker bleibt dann inaktiv.)
 Repo-Einstellungen → *Pages* → Branch auswählen → fertig. Es wird nichts
 gebaut, der Repo-Inhalt ist die App.
 
+## Illustrationen generieren (optional)
+
+Die Übungs-Illustrationen liegen in `assets/img/` (eine PNG pro Übungs-ID,
+transparenter Hintergrund). Übungen ohne Bild zeigen automatisch eine
+SVG-Strichfigur als Fallback.
+
+Zum Generieren per OpenAI-API (`gpt-image-1`) gibt es
+[`tools/generate-images.mjs`](tools/generate-images.mjs) und den
+GitHub-Actions-Workflow **„Generate exercise images"** (manuell startbar
+unter *Actions*). Voraussetzung: Repo-Secret `OPENAI_API_KEY`
+(*Settings → Secrets and variables → Actions*). Der Workflow generiert nur
+fehlende Bilder, committet sie und stößt das Pages-Deployment an.
+Optional sorgt eine Stil-Referenz unter `assets/img/_reference.png` für
+konsistente Figuren über alle Bilder.
+
 ## Mitmachen
 
 Neue Übungen, bessere Illustrationen, Übersetzungen – Pull Requests sind
