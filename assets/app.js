@@ -98,7 +98,7 @@
     card.className = 'exercise-card';
     card.dataset.id = ex.id;
     card.innerHTML = `
-      ${POSES[ex.pose]}
+      ${figureHTML(ex)}
       <span class="name">${ex.name}</span>
       <span class="cat">${ex.cat}</span>
       ${ex.sides ? '<span class="sides-tag">links + rechts</span>' : ''}`;
@@ -130,7 +130,7 @@
 
   function openExerciseDialog(ex) {
     dialogExercise = ex;
-    $('#dialog-pose').innerHTML = POSES[ex.pose];
+    $('#dialog-pose').innerHTML = figureHTML(ex);
     $('#dialog-title').textContent = ex.name;
     $('#dialog-desc').textContent = ex.desc;
     dialog.showModal();
@@ -240,7 +240,8 @@
     const step = player.steps[player.index];
     player.remaining = step.secs;
 
-    $('#pose-figure').innerHTML = POSES[step.ex.pose];
+    $('#pose-figure').innerHTML = figureHTML(step.ex);
+    $('#pose-figure').classList.toggle('flip', step.side === 'rechts');
     $('#player-title').textContent = step.ex.name;
     $('#player-hint').textContent = step.ex.desc;
     const badge = $('#side-badge');

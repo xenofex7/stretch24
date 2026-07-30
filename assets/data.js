@@ -120,6 +120,17 @@ const POSES = {
   `),
 };
 
+/* Übungen mit fertiger Illustration in assets/img/<id>.png.
+ * Alle anderen zeigen die SVG-Strichfigur als Fallback –
+ * so können wir die Bilder schrittweise ergänzen. */
+const IMAGES = new Set([
+  'neck-side',
+]);
+
+const figureHTML = (ex) => IMAGES.has(ex.id)
+  ? `<img class="figure figure-img" src="assets/img/${ex.id}.png" alt="" loading="lazy">`
+  : POSES[ex.pose];
+
 /* sides: true → Übung wird links & rechts ausgeführt */
 const EXERCISES = [
   { id: 'neck-side',       name: 'Nacken zur Seite',            cat: 'Nacken & Schultern', pose: 'neckSide',    sides: true,
