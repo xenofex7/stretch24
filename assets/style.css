@@ -30,6 +30,13 @@
 
 [hidden] { display: none !important; }
 
+/* SVG-Figuren: weicher Blob-Hintergrund, Bodenschatten, gefüllter Kopf */
+.figure .fig-bg { fill: var(--accent-soft); stroke: none; }
+.figure .fig-bg2 { opacity: 0.6; }
+.figure .fig-shadow { fill: var(--border); stroke: none; opacity: 0.9; }
+.figure .fig-head { fill: currentColor; stroke: none; }
+.figure .accent-stroke { stroke: var(--accent); }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -123,7 +130,7 @@ h1, h2, h3 { line-height: 1.2; margin: 0 0 0.5rem; }
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .exercise-card:hover, .exercise-card:focus-visible { transform: translateY(-2px); border-color: var(--accent); }
-.exercise-card .figure { width: 70px; height: 70px; color: var(--text); }
+.exercise-card .figure { width: 82px; height: 82px; color: var(--text); }
 .exercise-card .figure .accent-stroke { stroke: var(--accent); }
 .exercise-card .name { display: block; font-size: 0.85rem; font-weight: 600; margin-top: 0.3rem; }
 .exercise-card .cat { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
