@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Stretch24 – 24 geführte Dehnübungen, komplett gratis. Ohne Account, ohne Werbung, offline nutzbar.">
+  <meta name="theme-color" content="#10b981">
+  <title>Stretch24 · Dehnen für alle. Gratis.</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <!-- ===== Home ===== -->
+  <main id="view-home" class="view active">
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="logo-row">
+          <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="32" r="30" fill="var(--accent)" opacity="0.15"/>
+            <circle cx="32" cy="14" r="6" fill="var(--accent)"/>
+            <path d="M32 22 V40 M32 26 L18 38 M32 26 L46 38 M32 40 L22 56 M32 40 L42 56"
+                  stroke="var(--accent)" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </svg>
+          <h1>Stretch<span class="accent">24</span></h1>
+        </div>
+        <p class="tagline">Dehnen für alle. Gratis, offen, ohne Schnickschnack.</p>
+        <div class="streak-bar" id="streak-bar" hidden>
+          <span id="streak-flame">🔥</span>
+          <span id="streak-text"></span>
+        </div>
+      </div>
+    </header>
+
+    <section class="section">
+      <h2>Routinen</h2>
+      <div id="routine-list" class="card-grid"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Eigene Routinen</h2>
+        <button class="btn btn-ghost" id="btn-new-routine">+ Neu</button>
+      </div>
+      <div id="custom-routine-list" class="card-grid"></div>
+      <p id="custom-empty" class="muted">Noch keine eigene Routine. Stell dir eine aus den 24 Übungen zusammen!</p>
+    </section>
+
+    <section class="section">
+      <h2>Alle 24 Übungen</h2>
+      <div id="exercise-list" class="exercise-grid"></div>
+    </section>
+
+    <footer class="footer">
+      <p>Stretch24 ist frei &amp; Open Source (MIT). Kein Account, keine Werbung, keine Datensammlung – dein Fortschritt bleibt auf deinem Gerät.</p>
+      <p class="muted">Kein Ersatz für medizinischen Rat. Dehne nur bis zu einem angenehmen Zug, nie in den Schmerz.</p>
+    </footer>
+  </main>
+
+  <!-- ===== Player ===== -->
+  <main id="view-player" class="view">
+    <div class="player">
+      <div class="player-top">
+        <button class="btn btn-ghost" id="btn-quit" aria-label="Beenden">✕</button>
+        <div class="player-progress" id="player-progress"></div>
+        <button class="btn btn-ghost" id="btn-sound" aria-label="Ton an/aus">🔊</button>
+      </div>
+
+      <div class="player-stage">
+        <div class="pose-wrap">
+          <svg id="ring" class="ring" viewBox="0 0 260 260" aria-hidden="true">
+            <circle class="ring-bg" cx="130" cy="130" r="120"/>
+            <circle class="ring-fg" id="ring-fg" cx="130" cy="130" r="120"/>
+          </svg>
+          <div class="pose" id="pose-figure"></div>
+          <div class="countdown" id="countdown">0</div>
+        </div>
+        <div class="side-badge" id="side-badge" hidden></div>
+        <h2 class="player-title" id="player-title">…</h2>
+        <p class="player-hint" id="player-hint"></p>
+      </div>
+
+      <div class="player-controls">
+        <button class="btn btn-round" id="btn-prev" aria-label="Zurück">⏮</button>
+        <button class="btn btn-round btn-big" id="btn-pause" aria-label="Pause">⏸</button>
+        <button class="btn btn-round" id="btn-next" aria-label="Weiter">⏭</button>
+      </div>
+      <p class="player-next muted" id="player-next"></p>
+    </div>
+  </main>
+
+  <!-- ===== Fertig ===== -->
+  <main id="view-done" class="view">
+    <div class="done">
+      <div class="done-emoji">🎉</div>
+      <h2>Geschafft!</h2>
+      <p id="done-summary"></p>
+      <p id="done-streak" class="done-streak"></p>
+      <button class="btn btn-primary" id="btn-done-home">Zurück zur Übersicht</button>
+    </div>
+  </main>
+
+  <!-- ===== Routinen-Builder ===== -->
+  <main id="view-builder" class="view">
+    <div class="builder">
+      <div class="builder-head">
+        <button class="btn btn-ghost" id="btn-builder-back">← Zurück</button>
+        <h2>Eigene Routine</h2>
+      </div>
+      <label class="field">
+        <span>Name</span>
+        <input type="text" id="builder-name" maxlength="40" placeholder="z.&nbsp;B. Meine Abendroutine">
+      </label>
+      <label class="field">
+        <span>Sekunden pro Übung: <strong id="builder-secs-label">30</strong></span>
+        <input type="range" id="builder-secs" min="15" max="90" step="5" value="30">
+      </label>
+      <p class="muted">Übungen antippen zum Auswählen – die Reihenfolge entspricht deiner Auswahl.</p>
+      <div id="builder-exercises" class="exercise-grid selectable"></div>
+      <div class="builder-foot">
+        <span id="builder-summary" class="muted"></span>
+        <button class="btn btn-primary" id="btn-builder-save" disabled>Speichern</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Übungs-Detail (Dialog) ===== -->
+  <dialog id="exercise-dialog">
+    <div class="dialog-pose" id="dialog-pose"></div>
+    <h3 id="dialog-title"></h3>
+    <p id="dialog-desc"></p>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" id="dialog-close">Schließen</button>
+      <button class="btn btn-primary" id="dialog-try">60 s ausprobieren</button>
+    </div>
+  </dialog>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>

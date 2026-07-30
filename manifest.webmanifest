@@ -1,0 +1,18 @@
+{
+  "name": "Stretch24 – Dehnen für alle",
+  "short_name": "Stretch24",
+  "description": "24 geführte Dehnübungen, komplett gratis. Ohne Account, ohne Werbung, offline nutzbar.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f6faf8",
+  "theme_color": "#10b981",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
