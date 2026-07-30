@@ -31,9 +31,11 @@ const BASE_PROMPT = (pose) =>
   `framing in every image. Simple rounded shapes, no facial features, no ` +
   `outlines. Flat matte solid colors only: dark teal shirt, teal shorts, ` +
   `warm beige skin. The entire background is one single uniform flat pale ` +
-  `mint green color (#E9F7F1) with absolutely no gradients, no glow, no ` +
-  `lighting effects, no shadows, no floor line, no props, no text. ` +
-  `Square 1:1 format.`;
+  `mint green color fill (#E9F7F1), exactly like a solid paint-bucket fill. ` +
+  `STRICTLY FORBIDDEN: glow, aura, halo, soft light, rim light, vignette, ` +
+  `gradients, color bleed around the figure, shadows, lighting effects, ` +
+  `floor line, props, text. The figure has crisp hard edges directly ` +
+  `against the flat background color. Square 1:1 format.`;
 
 /* Pose pro Übungs-ID. Bei Links/Rechts-Übungen genügt eine Richtung –
  * die App spiegelt die zweite Seite per CSS. */
@@ -116,7 +118,13 @@ async function generate(id, pose) {
   writeFileSync(resolve(IMG_DIR, `${id}.png`), Buffer.from(b64, 'base64'));
 }
 
-function updateAppFiles() {
+function bumpSwVersion() {
+  const swPath = resolve(ROOT, 'sw.js');
+  const sw = readFileSync(swPath, 'utf8');
+  writeFileSync(swPath, sw.replace(/stretch24-v(\d+)/, (_, n) => `stretch24-v${Number(n) + 1}`));
+}
+
+function updateAppFiles(generatedCount) {
   const ids = readdirSync(IMG_DIR)
     .filter((f) => f.endsWith('.png') && !f.startsWith('_'))
     .map((f) => f.replace(/\.png$/, ''))
@@ -132,10 +140,13 @@ function updateAppFiles() {
   );
   if (updated !== data) {
     writeFileSync(dataPath, updated);
-    const swPath = resolve(ROOT, 'sw.js');
-    const sw = readFileSync(swPath, 'utf8');
-    writeFileSync(swPath, sw.replace(/stretch24-v(\d+)/, (_, n) => `stretch24-v${Number(n) + 1}`));
-    console.log(`IMAGES-Liste aktualisiert (${ids.length} Bilder), Cache-Version erhöht.`);
+    console.log(`IMAGES-Liste aktualisiert (${ids.length} Bilder).`);
+  }
+  // Cache-Version IMMER erhöhen, wenn Bilder neu geschrieben wurden – sonst
+  // liefert der Service Worker Nutzer:innen ewig die alten Bilder aus.
+  if (updated !== data || generatedCount > 0) {
+    bumpSwVersion();
+    console.log('Service-Worker-Cache-Version erhöht.');
   }
 }
 
@@ -159,6 +170,6 @@ for (const [id, pose] of todo) {
   }
 }
 
-updateAppFiles();
+updateAppFiles(ok);
 console.log(`Fertig: ${ok} erzeugt${failed.length ? `, fehlgeschlagen: ${failed.join(', ')}` : ''}.`);
 if (ok === 0 && todo.length > 0) process.exit(1);
