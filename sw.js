@@ -1,5 +1,5 @@
 /* Stretch24 Service Worker – Cache-first, damit die App offline läuft */
-const CACHE = 'stretch24-v8';
+const CACHE = 'stretch24-v9';
 const ASSETS = [
   '.',
   'index.html',

@@ -18,7 +18,53 @@
     },
   };
 
-  let soundOn = store.get('sound', true);
+  /* ===== Eingabe-Validierung =====
+   * Alles, was aus Nutzereingaben oder dem localStorage kommt, wird hier
+   * geprüft: HTML wird escaped (kein Markup über Routinen-Namen einschleusbar),
+   * Zahlen werden auf sinnvolle Bereiche begrenzt, kaputte Datensätze fliegen raus. */
+  const esc = (value) => String(value).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+
+  const clampSecs = (value) => {
+    const n = Math.round(Number(value));
+    return Number.isFinite(n) ? Math.min(90, Math.max(15, n)) : 30;
+  };
+
+  const cleanName = (value) => String(value ?? '').trim().slice(0, 40) || 'Meine Routine';
+
+  const cleanCount = (value) => {
+    const n = Math.floor(Number(value));
+    return Number.isFinite(n) && n >= 0 ? Math.min(n, 999999) : 0;
+  };
+
+  function loadCustomRoutines() {
+    const raw = store.get('custom', []);
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((r) => r && typeof r === 'object')
+      .map((r, i) => ({
+        id: typeof r.id === 'string' && r.id ? r.id : 'c' + i,
+        icon: 'star',
+        name: cleanName(r.name),
+        secs: clampSecs(r.secs),
+        items: Array.isArray(r.items) ? r.items.filter((id) => exerciseById[id]) : [],
+      }))
+      .filter((r) => r.items.length > 0);
+  }
+
+  function loadStats() {
+    const s = store.get('stats', {});
+    return { sessions: cleanCount(s?.sessions), minutes: cleanCount(s?.minutes) };
+  }
+
+  function loadStreak() {
+    const s = store.get('streak', {});
+    const last = typeof s?.last === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.last) ? s.last : null;
+    return { last, count: cleanCount(s?.count) };
+  }
+
+  let soundOn = store.get('sound', true) !== false;
 
   /* ===== Views ===== */
   function show(viewId) {
@@ -31,7 +77,7 @@
   const todayStr = () => new Date().toISOString().slice(0, 10);
 
   function currentStreak() {
-    const s = store.get('streak', { last: null, count: 0 });
+    const s = loadStreak();
     if (!s.last) return 0;
     const last = new Date(s.last + 'T00:00:00');
     const diffDays = Math.round((new Date(todayStr() + 'T00:00:00') - last) / 86400000);
@@ -39,7 +85,7 @@
   }
 
   function bumpStreak() {
-    const s = store.get('streak', { last: null, count: 0 });
+    const s = loadStreak();
     const today = todayStr();
     if (s.last === today) return s.count; // heute schon gezählt
     const alive = currentStreak() > 0;
@@ -50,7 +96,7 @@
 
   function renderStreak() {
     const streak = currentStreak();
-    const stats = store.get('stats', { sessions: 0, minutes: 0 });
+    const stats = loadStats();
     const bar = $('#streak-bar');
     if (streak === 0 && stats.sessions === 0) { bar.hidden = true; return; }
     bar.hidden = false;
@@ -73,8 +119,8 @@
     card.className = 'routine-card';
     card.innerHTML = `
       <span class="routine-icon">${ICONS[routine.icon] || ICONS.star}</span>
-      <h3>${routine.name}</h3>
-      <p>${routine.blurb || `${routine.items.length} Übungen, selbst zusammengestellt.`}</p>
+      <h3>${esc(routine.name)}</h3>
+      <p>${routine.blurb ? esc(routine.blurb) : `${routine.items.length} Übungen, selbst zusammengestellt.`}</p>
       <span class="meta">≈ ${routineDuration(routine)} Min · ${routine.items.length} Übungen</span>`;
     card.addEventListener('click', () => startRoutine(routine));
     if (deletable) {
@@ -85,7 +131,7 @@
       del.addEventListener('click', (ev) => {
         ev.stopPropagation();
         if (!confirm(`„${routine.name}" löschen?`)) return;
-        store.set('custom', store.get('custom', []).filter((r) => r.id !== routine.id));
+        store.set('custom', loadCustomRoutines().filter((r) => r.id !== routine.id));
         renderHome();
       });
       card.appendChild(del);
@@ -111,7 +157,7 @@
     list.innerHTML = '';
     ROUTINES.forEach((r) => list.appendChild(routineCard(r)));
 
-    const custom = store.get('custom', []);
+    const custom = loadCustomRoutines();
     const customList = $('#custom-routine-list');
     customList.innerHTML = '';
     custom.forEach((r) => customList.appendChild(routineCard(r, { deletable: true })));
@@ -323,7 +369,7 @@
     stopPlayer();
     const minutes = Math.max(1, Math.round(player.totalSecs / 60));
 
-    const stats = store.get('stats', { sessions: 0, minutes: 0 });
+    const stats = loadStats();
     stats.sessions += 1;
     stats.minutes += minutes;
     store.set('stats', stats);
@@ -414,14 +460,13 @@
   $('#btn-builder-back').addEventListener('click', () => show('view-home'));
 
   $('#btn-builder-save').addEventListener('click', () => {
-    const name = $('#builder-name').value.trim() || 'Meine Routine';
-    const custom = store.get('custom', []);
+    const custom = loadCustomRoutines();
     custom.push({
       id: 'c' + Date.now().toString(36),
       icon: 'star',
-      name,
-      secs: Number($('#builder-secs').value),
-      items: [...builderSelection],
+      name: cleanName($('#builder-name').value),
+      secs: clampSecs($('#builder-secs').value),
+      items: builderSelection.filter((id) => exerciseById[id]),
     });
     store.set('custom', custom);
     renderHome();

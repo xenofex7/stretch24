@@ -60,7 +60,7 @@ jobs:
           git commit -m "KI-Illustrationen generiert (gpt-image-1)"
           git push
 
-      - name: Pages-Deploy anstoßen
+      - name: Pages-Deploy anstossen
         # Pushes mit GITHUB_TOKEN lösen keine anderen Workflows aus,
         # deshalb wird das Deployment hier explizit gestartet.
         env:

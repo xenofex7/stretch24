@@ -58,7 +58,7 @@ Zum Generieren per OpenAI-API (`gpt-image-1`) gibt es
 GitHub-Actions-Workflow **„Generate exercise images"** (manuell startbar
 unter *Actions*). Voraussetzung: Repo-Secret `OPENAI_API_KEY`
 (*Settings → Secrets and variables → Actions*). Der Workflow generiert nur
-fehlende Bilder, committet sie und stößt das Pages-Deployment an.
+fehlende Bilder, committet sie und stösst das Pages-Deployment an.
 Optional sorgt eine Stil-Referenz unter `assets/img/_reference.png` für
 konsistente Figuren über alle Bilder.
 
