@@ -13,8 +13,9 @@ Menschen und KI-Assistenten gleichermassen).
 
 - Commit-Messages auf **Englisch**, kurz und beschreibend (Imperativ),
   **ohne Attribution-Trailer** (kein `Co-Authored-By`, keine Session-Links).
-- Commit-Identität: `Pascal Christen <pascal@nextara.ch>` (gilt auch für
-  KI-Assistenten; Ausnahme: Workflow-Commits laufen als `github-actions[bot]`).
+- Commit-Identität: `xenofex7 <41230096+xenofex7@users.noreply.github.com>`
+  (GitHub-Standardformat; gilt auch für KI-Assistenten. Ausnahme:
+  Workflow-Commits laufen als `github-actions[bot]`).
 - Es wird direkt auf `main` gearbeitet – keine Feature-Branches.
   Jeder Push auf `main` deployt automatisch auf GitHub Pages.
 
