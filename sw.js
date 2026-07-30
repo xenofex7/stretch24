@@ -1,5 +1,5 @@
 /* Stretch24 Service Worker – Cache-first, damit die App offline läuft */
-const CACHE = 'stretch24-v12';
+const CACHE = 'stretch24-v13';
 
 /* Kern-Assets: ohne sie startet die App nicht. */
 const CORE_ASSETS = [
