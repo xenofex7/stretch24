@@ -124,6 +124,8 @@ const POSES = {
  * Alle anderen zeigen die SVG-Strichfigur als Fallback –
  * so können wir die Bilder schrittweise ergänzen. */
 const IMAGES = new Set([
+  'butterfly',
+  'down-dog',
   'neck-side',
 ]);
 
