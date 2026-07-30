@@ -24,18 +24,20 @@ const IMG_DIR = resolve(ROOT, 'assets/img');
 const KEY = process.env.OPENAI_API_KEY;
 
 const BASE_PROMPT = (pose) =>
-  `Minimalist flat vector illustration of a young woman with shoulder-length ` +
-  `teal hair in a small bun, wearing a dark teal t-shirt and teal shorts, ` +
-  `barefoot, ${pose}. Full body visible including feet, character centered, ` +
-  `same size and framing in every image. Simple rounded shapes, no facial ` +
-  `features, no outlines, matte flat colors: dark teal shirt, teal shorts, ` +
-  `warm beige skin. Isolated on transparent background, no floor, no shadow, ` +
-  `no props, no text. Square 1:1 format.`;
+  `Minimalist flat vector illustration of a young woman with teal hair in a ` +
+  `small bun, wearing a dark teal t-shirt and teal shorts, barefoot, ${pose}. ` +
+  `The stretching pose must be clearly recognizable and anatomically correct. ` +
+  `Full body visible including feet, character centered, same size and ` +
+  `framing in every image. Simple rounded shapes, no facial features, no ` +
+  `outlines. Flat matte solid colors only: dark teal shirt, teal shorts, ` +
+  `warm beige skin. Absolutely no background, no glow, no gradients, no ` +
+  `lighting effects, no shadows, no floor, no props, no text. ` +
+  `Square 1:1 format.`;
 
 /* Pose pro Übungs-ID. Bei Links/Rechts-Übungen genügt eine Richtung –
  * die App spiegelt die zweite Seite per CSS. */
 const POSES = {
-  'neck-side':      'standing upright, tilting her head sideways, ear toward shoulder, arms relaxed at her sides',
+  'neck-side':      'standing upright with her head tilted far to one side so the ear moves toward the shoulder, neck visibly stretched, arms relaxed at her sides',
   'neck-front':     'standing upright, chin tucked to chest, hands resting gently on the back of her head',
   'shoulder-roll':  'standing upright, shoulders raised in a shrug, arms relaxed',
   'shoulder-cross': 'standing, one straight arm crossed over her chest, the other arm hugging it closer',
