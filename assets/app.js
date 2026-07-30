@@ -241,12 +241,15 @@
 
   /* ===== Player ===== */
   const RING_CIRC = 2 * Math.PI * 120;
+  const REST_SECS = 5; // Pause zwischen Übungen, zum Neu-Ausrichten
 
   const player = {
     active: false,
     steps: [],       // {ex, side: null|'links'|'rechts', secs}
     index: 0,
     remaining: 0,
+    phaseTotal: 0,   // Sekunden der aktuellen Phase (Übung oder Pause), für den Ring
+    resting: false,
     paused: false,
     timerId: null,
     routineName: '',
@@ -275,6 +278,8 @@
     player.index = 0;
     player.active = true;
     player.paused = false;
+    player.resting = false;
+    $('#view-player').classList.remove('resting');
     player.routineName = routine.name;
     player.single = !!routine.single;
     player.totalSecs = player.steps.reduce((n, s) => n + s.secs, 0);
@@ -289,8 +294,11 @@
 
   function loadStep() {
     clearInterval(player.timerId);
+    player.resting = false;
+    $('#view-player').classList.remove('resting');
     const step = player.steps[player.index];
     player.remaining = step.secs;
+    player.phaseTotal = step.secs;
 
     $('#pose-figure').innerHTML = figureHTML(step.ex, { eager: true });
     $('#pose-figure').classList.toggle('flip', step.side === 'rechts');
@@ -325,7 +333,6 @@
 
   function updateCountdown(reset = false) {
     $('#countdown').textContent = player.remaining;
-    const step = player.steps[player.index];
     const ring = $('#ring-fg');
     if (reset) {
       ring.classList.add('no-anim');
@@ -333,15 +340,45 @@
       void ring.getBoundingClientRect(); // Reflow, damit der Reset ohne Animation greift
       ring.classList.remove('no-anim');
     }
-    ring.style.strokeDashoffset = String(RING_CIRC * (1 - player.remaining / step.secs));
+    ring.style.strokeDashoffset = String(RING_CIRC * (1 - player.remaining / player.phaseTotal));
+  }
+
+  /* Kurze Pause zwischen zwei Übungen, zum Neu-Ausrichten. */
+  function startRest() {
+    clearInterval(player.timerId);
+    player.resting = true;
+    player.remaining = REST_SECS;
+    player.phaseTotal = REST_SECS;
+
+    const next = player.steps[player.index + 1];
+    $('#view-player').classList.add('resting');
+    $('#side-badge').hidden = true;
+    $('#player-title').textContent = 'Kurze Pause';
+    $('#player-hint').textContent = next ? `Mach dich bereit für: ${next.ex.name}` : '';
+    $('#player-announce').textContent = `Kurze Pause, ${REST_SECS} Sekunden`;
+    $('#player-next').textContent = '';
+
+    document.querySelectorAll('#player-progress .seg').forEach((seg, i) => {
+      seg.className = 'seg' + (i <= player.index ? ' done' : '');
+    });
+
+    speak('Kurze Pause');
+    updateCountdown(true);
+    player.timerId = setInterval(tick, 1000);
   }
 
   function tick() {
     if (player.paused) return;
     player.remaining -= 1;
     if (player.remaining <= 0) {
-      chime();
-      nextStep();
+      if (player.resting) {
+        player.index += 1;
+        loadStep();
+      } else {
+        chime();
+        if (player.index + 1 >= player.steps.length) { finish(); return; }
+        startRest();
+      }
       return;
     }
     updateCountdown();
@@ -349,12 +386,14 @@
   }
 
   function nextStep() {
+    if (player.resting) { player.index += 1; loadStep(); return; }
     if (player.index + 1 >= player.steps.length) { finish(); return; }
     player.index += 1;
     loadStep();
   }
 
   function prevStep() {
+    if (player.resting) { loadStep(); return; } // aktuelle (gerade beendete) Übung neu starten
     if (player.index === 0) { loadStep(); return; } // aktuelle Übung neu starten
     player.index -= 1;
     loadStep();

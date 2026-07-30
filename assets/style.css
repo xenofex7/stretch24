@@ -289,6 +289,7 @@ a.btn { text-decoration: none; display: inline-block; }
 .player-next { text-align: center; margin: 0.9rem 0 0; min-height: 1.3em; }
 
 .paused .pose .figure { animation-play-state: paused; }
+.resting .pose-wrap { opacity: 0.45; }
 
 /* ===== Done ===== */
 .done-screen {
