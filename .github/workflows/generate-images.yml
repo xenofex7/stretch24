@@ -57,7 +57,7 @@ jobs:
             echo "Keine neuen Bilder – nichts zu committen."
             exit 0
           fi
-          git commit -m "KI-Illustrationen generiert (gpt-image-1)"
+          git commit -m "Generate AI exercise illustrations (gpt-image-1)"
           git push
 
       - name: Pages-Deploy anstossen

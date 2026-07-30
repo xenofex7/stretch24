@@ -11,9 +11,8 @@ Menschen und KI-Assistenten gleichermassen).
 
 ## Git
 
-- Commit-Messages auf Deutsch, kurz und beschreibend (Imperativ oder
-  Substantivstil), **ohne Attribution-Trailer** (kein `Co-Authored-By`,
-  keine Session-Links).
+- Commit-Messages auf **Englisch**, kurz und beschreibend (Imperativ),
+  **ohne Attribution-Trailer** (kein `Co-Authored-By`, keine Session-Links).
 - Es wird direkt auf `main` gearbeitet – keine Feature-Branches.
   Jeder Push auf `main` deployt automatisch auf GitHub Pages.
 
