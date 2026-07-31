@@ -112,8 +112,22 @@
 
   /* ===== Home rendern ===== */
   function routineDuration(routine) {
-    const steps = routine.items.reduce((n, id) => n + (exerciseById[id]?.sides ? 2 : 1), 0);
+    // Zufallsroutine: Übungen stehen noch nicht fest, mit ~1.5 Schritten
+    // pro Übung schätzen (Links/Rechts-Übungen zählen doppelt).
+    const steps = routine.random
+      ? Math.round(routine.random * 1.5)
+      : routine.items.reduce((n, id) => n + (exerciseById[id]?.sides ? 2 : 1), 0);
     return Math.round((steps * routine.secs) / 60);
+  }
+
+  /* n zufällige Übungs-IDs ziehen (Fisher-Yates) */
+  function randomExercises(n) {
+    const ids = EXERCISES.map((ex) => ex.id);
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    return ids.slice(0, n);
   }
 
   function routineCard(routine, { deletable = false } = {}) {
@@ -123,8 +137,10 @@
       <span class="routine-icon">${ICONS[routine.icon] || ICONS.star}</span>
       <span class="card-title">${esc(routine.name)}</span>
       <span class="card-desc">${routine.blurb ? esc(routine.blurb) : `${routine.items.length} Übungen, selbst zusammengestellt.`}</span>
-      <span class="meta">≈ ${routineDuration(routine)} Min · ${routine.items.length} Übungen</span>`;
-    card.addEventListener('click', () => startRoutine(routine));
+      <span class="meta">~ ${routineDuration(routine)} Min · ${routine.random || routine.items.length} Übungen</span>`;
+    card.addEventListener('click', () => startRoutine(
+      routine.random ? { ...routine, items: randomExercises(routine.random) } : routine
+    ));
     if (!deletable) return card;
 
     // Löschen-Button als Geschwister, nicht als Kind des Karten-Buttons
@@ -499,7 +515,7 @@
     const steps = builderSelection.reduce((n, id) => n + (exerciseById[id]?.sides ? 2 : 1), 0);
     const mins = Math.round((steps * secs) / 60);
     $('#builder-summary').textContent = builderSelection.length
-      ? `${builderSelection.length} Übungen · ≈ ${mins} Min`
+      ? `${builderSelection.length} Übungen · ~ ${mins} Min`
       : 'Keine Übung ausgewählt';
     $('#btn-builder-save').disabled = builderSelection.length === 0;
   }

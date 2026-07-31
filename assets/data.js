@@ -72,7 +72,7 @@ const ROUTINES = [
     items: ['shoulder-roll', 'neck-side', 'neck-front', 'shoulder-cross', 'triceps', 'wrist', 'chest-opener', 'side-bend'] },
   { id: 'fullbody15', icon: 'personStanding', name: 'Full Body 15', secs: 35,
     blurb: 'Der Klassiker: einmal alles, in einer Viertelstunde.',
-    items: ['neck-side', 'shoulder-cross', 'chest-opener', 'cat-cow', 'down-dog', 'lunge', 'hamstring', 'quad', 'butterfly', 'seated-twist', 'child'] },
+    items: ['shoulder-roll', 'neck-side', 'shoulder-cross', 'chest-opener', 'side-bend', 'forward-fold', 'hamstring', 'quad', 'calf', 'lunge', 'cat-cow', 'down-dog', 'cobra', 'butterfly', 'seated-twist', 'supine-twist', 'child'] },
   { id: 'back', icon: 'leaf', name: 'Rücken-Reset', secs: 35,
     blurb: 'Länge und Entspannung für die Wirbelsäule.',
     items: ['cat-cow', 'child', 'cobra', 'down-dog', 'seated-twist', 'supine-twist', 'fig4', 'full-stretch'] },
@@ -82,4 +82,11 @@ const ROUTINES = [
   { id: 'runner', icon: 'dumbbell', name: 'Nach dem Sport', secs: 30,
     blurb: 'Beine & Waden nach Laufen, Rad oder Training.',
     items: ['quad', 'hamstring', 'calf', 'hip-flexor', 'fig4', 'forward-fold', 'child'] },
+  { id: 'evening', icon: 'moon', name: 'Feierabend', secs: 40,
+    blurb: 'Runterfahren nach dem Tag, ruhig Richtung Schlaf.',
+    items: ['forward-fold', 'child', 'cat-cow', 'supine-twist', 'fig4', 'butterfly', 'full-stretch'] },
+  /* random: statt fester items werden beim Start so viele zufällige Übungen gezogen */
+  { id: 'surprise', icon: 'shuffle', name: 'Zufallsmix', secs: 30, random: 5,
+    blurb: 'Kurz und knackig: fünf zufällige Übungen, jedes Mal anders.',
+    items: [] },
 ];

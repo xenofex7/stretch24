@@ -1,5 +1,5 @@
 /* Stretch24 Service Worker – Cache-first, damit die App offline läuft */
-const CACHE = 'stretch24-v13';
+const CACHE = 'stretch24-v16';
 
 /* Kern-Assets: ohne sie startet die App nicht. */
 const CORE_ASSETS = [
@@ -49,10 +49,12 @@ const IMG_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE).then(async (c) => {
-      await c.addAll(CORE_ASSETS);
+      // cache: 'reload' umgeht den HTTP-Cache des Browsers – sonst landen
+      // beim Update alte Dateistände im neuen Cache.
+      await c.addAll(CORE_ASSETS.map((url) => new Request(url, { cache: 'reload' })));
       // Bilder einzeln cachen: ein einzelner Fehlschlag verhindert die
       // Installation nicht (das Bild kommt dann zur Laufzeit in den Cache).
-      await Promise.allSettled(IMG_ASSETS.map((url) => c.add(url)));
+      await Promise.allSettled(IMG_ASSETS.map((url) => c.add(new Request(url, { cache: 'reload' }))));
     })
   );
   self.skipWaiting();
