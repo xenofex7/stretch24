@@ -2,3 +2,4 @@
 .env
 .claude/
 assets/img/_reference.png
+.deploy-ci-*.log
