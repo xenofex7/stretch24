@@ -26,8 +26,13 @@ const matchAll = (src, re) => [...src.matchAll(re)].map((m) => m[1]);
 
 const dataJs = read('assets/data.js');
 const exercises = matchAll(block(dataJs, 'const EXERCISES = ['), /\{ id: '([^']+)'/g);
+const routineIds = matchAll(block(dataJs, 'const ROUTINES = ['), /\{ id: '([^']+)'/g);
 const routineItems = matchAll(block(dataJs, 'const ROUTINES = ['), /items: \[([^\]]*)\]/g)
   .flatMap((list) => matchAll(list, /'([^']+)'/g));
+const cats = [...new Set(matchAll(block(dataJs, 'const EXERCISES = ['), /cat: '([^']+)'/g))];
+
+/* i18n.js ist reine Datendeklaration und lässt sich gefahrlos auswerten. */
+const { I18N, LANGS } = new Function(read('assets/i18n.js') + '\nreturn { I18N, LANGS };')();
 
 const pngIds = (dir) => readdirSync(resolve(ROOT, dir))
   .filter((f) => f.endsWith('.png') && !f.startsWith('_'))
@@ -58,8 +63,29 @@ diff('Routinen', [...new Set(routineItems)], exercises, 'ROUTINES items', 'EXERC
 const duplicates = exercises.filter((id, i) => exercises.indexOf(id) !== i);
 if (duplicates.length) errors.push(`Doppelte Übungs-IDs: ${[...new Set(duplicates)].join(', ')}`);
 
+/* Übersetzungen: Deutsch ist die Referenz, jede Sprache muss gleichziehen. */
+const langCodes = LANGS.map((l) => l.code);
+diff('Sprachen', langCodes, Object.keys(I18N), 'LANGS', 'I18N');
+diff('Sprachen', Object.keys(I18N), langCodes, 'I18N', 'LANGS');
+
+const REF = 'de';
+for (const code of Object.keys(I18N)) {
+  const l = I18N[code];
+  diff(`i18n ${code} ui`, Object.keys(I18N[REF].ui), Object.keys(l.ui || {}), REF, code);
+  diff(`i18n ${code} plural`, Object.keys(I18N[REF].plural), Object.keys(l.plural || {}), REF, code);
+  diff(`i18n ${code} cats`, cats, Object.keys(l.cats || {}), 'data.js', code);
+  diff(`i18n ${code} ex`, exercises, Object.keys(l.ex || {}), 'EXERCISES', code);
+  diff(`i18n ${code} routines`, routineIds, Object.keys(l.routines || {}), 'ROUTINES', code);
+
+  const incomplete = Object.entries(l.ex || {}).filter(([, v]) => !v.name || !v.desc).map(([id]) => id);
+  if (incomplete.length) errors.push(`i18n ${code}: Übung ohne name/desc: ${incomplete.join(', ')}`);
+  const blanks = Object.entries(l.routines || {}).filter(([, v]) => !v.name || !v.blurb).map(([id]) => id);
+  if (blanks.length) errors.push(`i18n ${code}: Routine ohne name/blurb: ${blanks.join(', ')}`);
+}
+
 if (errors.length) {
   console.error('Konsistenz-Check fehlgeschlagen:\n' + errors.map((e) => '  - ' + e).join('\n'));
   process.exit(1);
 }
-console.log(`Konsistenz-Check ok: ${exercises.length} Übungen, ${images.length} Bilder, alle Quellen deckungsgleich.`);
+console.log(`Konsistenz-Check ok: ${exercises.length} Übungen, ${images.length} Bilder, `
+  + `${Object.keys(I18N).length} Sprachen, alle Quellen deckungsgleich.`);

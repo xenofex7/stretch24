@@ -18,7 +18,7 @@
 
 Stretch24 is a free web app with 24 guided stretching exercises - no account, no
 ads, no tracking. Everything runs in the browser, works offline and stays on your
-device. The user interface is in German.
+device. Available in German, English, French, Italian, Spanish and Portuguese.
 
 ## Features
 
@@ -27,6 +27,7 @@ device. The user interface is in German.
   spoken cues and signal tones
 - 8 ready-made routines, from a 4-minute wake-up to a 15-minute full body session
 - Custom routines: pick the exercises and the seconds per exercise
+- Six languages, picked from your browser settings and switchable in the header
 - Streak and stats, stored on your device only (localStorage)
 - Installable PWA, usable offline, keeps the screen on during a session
 - Automatic dark mode, keyboard shortcuts, responsive, respects
@@ -49,8 +50,15 @@ works too, but the service worker stays inactive.
 
 No framework, no build step, no runtime dependencies - plain HTML, CSS and
 vanilla JavaScript. Exercises and routines live in
-[`assets/data.js`](assets/data.js), icons in
-[`assets/icons.js`](assets/icons.js).
+[`assets/data.js`](assets/data.js) as pure structure, all texts in
+[`assets/i18n.js`](assets/i18n.js), icons in
+[`assets/icons.js`](assets/icons.js). Design tokens are documented in
+[`DESIGN.md`](DESIGN.md).
+
+Adding a language means copying one block in `assets/i18n.js`, translating it and
+listing it in `LANGS` plus the `<select>` in `index.html`. Run
+`node tools/check-consistency.mjs` to verify that exercises, images, precache
+list, prompts and all translations still line up - it also runs in CI.
 
 Bump `CACHE` in [`sw.js`](sw.js) whenever an app file or an image changes,
 otherwise the cache-first service worker keeps serving the old version.

@@ -6,10 +6,6 @@
   const exerciseById = Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
 
   /* ===== Storage ===== */
-  const STORAGE_ERROR = 'Speichern nicht möglich: Der Browser-Speicher ist voll '
-    + 'oder blockiert (z.B. privater Modus). Deine Routinen bleiben nur bis zum '
-    + 'Schliessen des Tabs erhalten.';
-
   const store = {
     get(key, fallback) {
       try {
@@ -27,6 +23,48 @@
     },
   };
 
+  /* ===== Sprache =====
+   * Reihenfolge: gespeicherte Wahl, dann Browser-Sprachen, sonst Deutsch.
+   * Texte kommen aus assets/i18n.js, die Übungs-IDs verbinden beides. */
+  const LANG_CODES = LANGS.map((l) => l.code);
+  const DEFAULT_LANG = 'de';
+
+  function detectLang() {
+    const saved = store.get('lang', null);
+    if (typeof saved === 'string' && LANG_CODES.includes(saved)) return saved;
+    for (const tag of navigator.languages || [navigator.language || '']) {
+      const code = String(tag).slice(0, 2).toLowerCase();
+      if (LANG_CODES.includes(code)) return code;
+    }
+    return DEFAULT_LANG;
+  }
+
+  let lang = detectLang();
+  const dict = () => I18N[lang] || I18N[DEFAULT_LANG];
+
+  /* t('key', { name: 'X' }) füllt {platzhalter} im Text. */
+  function t(key, vars) {
+    const raw = dict().ui[key] ?? I18N[DEFAULT_LANG].ui[key] ?? key;
+    return vars ? fill(raw, vars) : raw;
+  }
+
+  const fill = (raw, vars) => raw.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+
+  /* Zählbares mit Singular/Plural, z.B. plural('exercises', 3). */
+  function plural(key, n) {
+    const forms = dict().plural[key] || I18N[DEFAULT_LANG].plural[key];
+    return fill(n === 1 ? forms.one : forms.other, { n });
+  }
+
+  /* Texte einer Übung bzw. Routine in der aktiven Sprache. */
+  const exText = (ex) => dict().ex[ex.id] || I18N[DEFAULT_LANG].ex[ex.id] || { name: ex.id, desc: '' };
+  const exName = (ex) => exText(ex).name;
+  const catName = (ex) => dict().cats[ex.cat] || I18N[DEFAULT_LANG].cats[ex.cat] || ex.cat;
+
+  /* Eigene Routinen tragen ihren Namen selbst, feste liegen in i18n. */
+  const routineText = (r) => (r.custom ? { name: r.name, blurb: '' }
+    : dict().routines[r.id] || I18N[DEFAULT_LANG].routines[r.id] || { name: r.id, blurb: '' });
+
   /* ===== Eingabe-Validierung =====
    * Alles, was aus Nutzereingaben oder dem localStorage kommt, wird hier
    * geprüft: HTML wird escaped (kein Markup über Routinen-Namen einschleusbar),
@@ -40,7 +78,7 @@
     return Number.isFinite(n) ? Math.min(90, Math.max(15, n)) : 30;
   };
 
-  const cleanName = (value) => String(value ?? '').trim().slice(0, 40) || 'Meine Routine';
+  const cleanName = (value) => String(value ?? '').trim().slice(0, 40) || t('defaultRoutineName');
 
   const cleanCount = (value) => {
     const n = Math.floor(Number(value));
@@ -55,6 +93,7 @@
       .map((r, i) => ({
         id: typeof r.id === 'string' && r.id ? r.id : 'c' + i,
         icon: 'star',
+        custom: true, // Name kommt vom Nutzer, nicht aus i18n
         name: cleanName(r.name),
         secs: clampSecs(r.secs),
         items: Array.isArray(r.items) ? r.items.filter((id) => exerciseById[id]) : [],
@@ -112,9 +151,9 @@
     if (streak === 0 && stats.sessions === 0) { bar.hidden = true; return; }
     bar.hidden = false;
     const parts = [];
-    if (streak > 0) parts.push(`${streak} Tag${streak === 1 ? '' : 'e'} in Folge`);
-    parts.push(`${stats.sessions} Session${stats.sessions === 1 ? '' : 's'}`);
-    parts.push(`${stats.minutes} Min gesamt`);
+    if (streak > 0) parts.push(t('streakDays', { n: plural('days', streak) }));
+    parts.push(t('streakSessions', { n: plural('sessions', stats.sessions) }));
+    parts.push(t('streakMinutes', { n: stats.minutes }));
     $('#streak-text').textContent = parts.join(' · ');
     $('#streak-flame').innerHTML = streak > 0 ? ICONS.flame : ICONS.sprout;
   }
@@ -143,13 +182,15 @@
   const randomExercises = (n) => shuffled(EXERCISES.map((ex) => ex.id)).slice(0, n);
 
   function routineCard(routine, { deletable = false } = {}) {
+    const text = routineText(routine);
+    const count = routine.random || routine.items.length;
     const card = document.createElement('button');
     card.className = 'routine-card';
     card.innerHTML = `
       <span class="routine-icon">${ICONS[routine.icon] || ICONS.star}</span>
-      <span class="card-title">${esc(routine.name)}</span>
-      <span class="card-desc">${routine.blurb ? esc(routine.blurb) : `${routine.items.length} Übungen, selbst zusammengestellt.`}</span>
-      <span class="meta">~ ${routineDuration(routine)} Min · ${routine.random || routine.items.length} Übungen</span>`;
+      <span class="card-title">${esc(text.name)}</span>
+      <span class="card-desc">${esc(text.blurb || t('cardCustomDesc', { n: plural('exercises', count) }))}</span>
+      <span class="meta">${esc(t('cardMeta', { min: routineDuration(routine), n: plural('exercises', count) }))}</span>`;
     card.addEventListener('click', () => startRoutine(
       routine.random ? { ...routine, items: randomExercises(routine.random) }
       : routine.shuffle ? { ...routine, items: shuffled(routine.items) }
@@ -165,11 +206,11 @@
     const del = document.createElement('button');
     del.className = 'delete';
     del.innerHTML = ICONS.trash;
-    del.setAttribute('aria-label', `${routine.name} löschen`);
+    del.setAttribute('aria-label', t('cardDelete', { name: text.name }));
     del.addEventListener('click', () => {
-      if (!confirm(`"${routine.name}" löschen?`)) return;
+      if (!confirm(t('cardConfirmDelete', { name: text.name }))) return;
       if (!store.set('custom', loadCustomRoutines().filter((r) => r.id !== routine.id))) {
-        alert(STORAGE_ERROR);
+        alert(t('storageError'));
         return;
       }
       renderHome();
@@ -184,9 +225,9 @@
     card.dataset.id = ex.id;
     card.innerHTML = `
       ${figureHTML(ex)}
-      <span class="name">${esc(ex.name)}</span>
-      <span class="cat">${esc(ex.cat)}</span>
-      ${ex.sides ? '<span class="sides-tag">links + rechts</span>' : ''}`;
+      <span class="name">${esc(exName(ex))}</span>
+      <span class="cat">${esc(catName(ex))}</span>
+      ${ex.sides ? `<span class="sides-tag">${esc(t('sidesTag'))}</span>` : ''}`;
     card.addEventListener('click', () => (onClick ? onClick(ex, card) : openExerciseDialog(ex)));
     return card;
   }
@@ -210,21 +251,22 @@
   }
 
   /* ===== Übungs-Dialog ===== */
+  const DIALOG_TRY_SECS = 60;
   const dialog = $('#exercise-dialog');
   let dialogExercise = null;
 
   function openExerciseDialog(ex) {
     dialogExercise = ex;
     $('#dialog-pose').innerHTML = figureHTML(ex, { eager: true });
-    $('#dialog-title').textContent = ex.name;
-    $('#dialog-desc').textContent = ex.desc;
+    $('#dialog-title').textContent = exName(ex);
+    $('#dialog-desc').textContent = exText(ex).desc;
     dialog.showModal();
   }
   $('#dialog-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', (ev) => { if (ev.target === dialog) dialog.close(); });
   $('#dialog-try').addEventListener('click', () => {
     dialog.close();
-    startRoutine({ name: dialogExercise.name, secs: 60, items: [dialogExercise.id], single: true });
+    startRoutine({ custom: true, name: exName(dialogExercise), secs: DIALOG_TRY_SECS, items: [dialogExercise.id], single: true });
   });
 
   /* ===== Audio & Sprache ===== */
@@ -253,7 +295,7 @@
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'de-DE';
+      u.lang = LANGS.find((l) => l.code === lang)?.speech || 'de-DE';
       u.rate = 1.0;
       speechSynthesis.speak(u);
     } catch {}
@@ -273,12 +315,17 @@
   });
 
   /* ===== Player ===== */
+  /* Seitenangabe: kurz für die Vorschau ("links"), lang für Ansage und
+   * Screenreader ("linke Seite"). */
+  const sideShort = (side) => t(side === 'left' ? 'sideLeftShort' : 'sideRightShort');
+  const sideLong = (side) => t(side === 'left' ? 'sideLeftLong' : 'sideRightLong');
+
   const RING_CIRC = 2 * Math.PI * 120;
   const REST_SECS = 5; // Pause zwischen Übungen, zum Neu-Ausrichten
 
   const player = {
     active: false,
-    steps: [],       // {ex, side: null|'links'|'rechts', secs}
+    steps: [],       // {ex, side: null|'left'|'right', secs}
     index: 0,
     remaining: 0,
     phaseTotal: 0,   // Sekunden der aktuellen Phase (Übung oder Pause), für den Ring
@@ -296,8 +343,8 @@
       const ex = exerciseById[id];
       if (!ex) return;
       if (ex.sides) {
-        steps.push({ ex, side: 'links', secs: routine.secs });
-        steps.push({ ex, side: 'rechts', secs: routine.secs });
+        steps.push({ ex, side: 'left', secs: routine.secs });
+        steps.push({ ex, side: 'right', secs: routine.secs });
       } else {
         steps.push({ ex, side: null, secs: routine.secs });
       }
@@ -313,7 +360,7 @@
     player.paused = false;
     player.resting = false;
     $('#view-player').classList.remove('resting');
-    player.routineName = routine.name;
+    player.routineName = routineText(routine).name;
     player.single = !!routine.single;
     player.totalSecs = player.steps.reduce((n, s) => n + s.secs, 0);
 
@@ -334,31 +381,33 @@
     player.phaseTotal = step.secs;
 
     $('#pose-figure').innerHTML = figureHTML(step.ex, { eager: true });
-    $('#pose-figure').classList.toggle('flip', step.side === 'rechts');
-    $('#player-title').textContent = step.ex.name;
-    $('#player-hint').textContent = step.ex.desc;
+    $('#pose-figure').classList.toggle('flip', step.side === 'right');
+    $('#player-title').textContent = exName(step.ex);
+    $('#player-hint').textContent = exText(step.ex).desc;
     $('#player-announce').textContent = step.side
-      ? `${step.ex.name}, ${step.side === 'links' ? 'linke' : 'rechte'} Seite, ${step.secs} Sekunden`
-      : `${step.ex.name}, ${step.secs} Sekunden`;
+      ? t('announceSide', { name: exName(step.ex), side: sideLong(step.side), secs: step.secs })
+      : t('announce', { name: exName(step.ex), secs: step.secs });
     const badge = $('#side-badge');
     badge.hidden = !step.side;
     if (step.side) {
-      badge.innerHTML = step.side === 'links'
-        ? `${ICONS.chevronLeft}<span>Linke Seite</span>`
-        : `<span>Rechte Seite</span>${ICONS.chevronRight}`;
+      badge.innerHTML = step.side === 'left'
+        ? `${ICONS.chevronLeft}<span>${esc(t('leftSide'))}</span>`
+        : `<span>${esc(t('rightSide'))}</span>${ICONS.chevronRight}`;
     }
 
     const next = player.steps[player.index + 1];
     $('#player-next').textContent = next
-      ? `Danach: ${next.ex.name}${next.side ? ` (${next.side})` : ''}`
-      : 'Letzte Übung – gleich geschafft!';
+      ? (next.side
+        ? t('afterSide', { name: exName(next.ex), side: sideShort(next.side) })
+        : t('after', { name: exName(next.ex) }))
+      : t('lastExercise');
 
     document.querySelectorAll('#player-progress .seg').forEach((seg, i) => {
       seg.className = 'seg' + (i < player.index ? ' done' : i === player.index ? ' now' : '');
     });
 
-    const sameExercise = step.side === 'rechts';
-    speak(sameExercise ? 'Seitenwechsel' : step.ex.name);
+    const sameExercise = step.side === 'right';
+    speak(sameExercise ? t('sideSwitch') : exName(step.ex));
 
     updateCountdown(true);
     player.timerId = setInterval(tick, 1000);
@@ -389,19 +438,19 @@
     $('#view-player').classList.add('resting');
     $('#side-badge').hidden = true;
     $('#pose-figure').innerHTML = figureHTML(next.ex, { eager: true });
-    $('#pose-figure').classList.toggle('flip', next.side === 'rechts');
-    $('#player-title').textContent = `Es folgt: ${next.ex.name}`;
-    $('#player-hint').textContent = next.ex.desc;
+    $('#pose-figure').classList.toggle('flip', next.side === 'right');
+    $('#player-title').textContent = t('upNext', { name: exName(next.ex) });
+    $('#player-hint').textContent = exText(next.ex).desc;
     $('#player-announce').textContent = next.side
-      ? `Es folgt: ${next.ex.name}, ${next.side === 'links' ? 'linke' : 'rechte'} Seite`
-      : `Es folgt: ${next.ex.name}`;
+      ? t('upNextSide', { name: exName(next.ex), side: sideLong(next.side) })
+      : t('upNext', { name: exName(next.ex) });
     $('#player-next').textContent = '';
 
     document.querySelectorAll('#player-progress .seg').forEach((seg, i) => {
       seg.className = 'seg' + (i <= player.index ? ' done' : '');
     });
 
-    speak(`Es folgt: ${next.ex.name}`);
+    speak(t('upNext', { name: exName(next.ex) }));
     updateCountdown(true);
     player.timerId = setInterval(tick, 1000);
   }
@@ -463,13 +512,13 @@
     const streak = bumpStreak();
 
     $('#done-summary').textContent = player.single
-      ? `${player.routineName} – schön dranbleiben!`
-      : `${player.routineName} · ${player.steps.length} Übungen · ca. ${minutes} Minuten.`;
+      ? t('doneSingle', { name: player.routineName })
+      : t('doneSummary', { name: player.routineName, n: plural('exercises', player.steps.length), min: minutes });
     $('#done-streak').innerHTML = streak > 1
-      ? `${ICONS.flame} ${streak} Tage in Folge – stark!`
-      : `${ICONS.sprout} Streak gestartet – bis morgen!`;
+      ? `${ICONS.flame} ${esc(t('doneStreak', { n: streak }))}`
+      : `${ICONS.sprout} ${esc(t('doneStreakStart'))}`;
     show('view-done');
-    speak('Geschafft. Gut gemacht!');
+    speak(t('doneSpeak'));
   }
 
   $('#btn-pause').addEventListener('click', () => setPaused(!player.paused));
@@ -538,8 +587,8 @@
     const steps = builderSelection.reduce((n, id) => n + (exerciseById[id]?.sides ? 2 : 1), 0);
     const mins = Math.round((steps * secs + Math.max(0, steps - 1) * REST_SECS) / 60);
     $('#builder-summary').textContent = builderSelection.length
-      ? `${builderSelection.length} Übungen · ~ ${mins} Min`
-      : 'Keine Übung ausgewählt';
+      ? t('builderSummary', { n: plural('exercises', builderSelection.length), min: mins })
+      : t('builderEmpty');
     $('#btn-builder-save').disabled = builderSelection.length === 0;
   }
 
@@ -560,9 +609,45 @@
       secs: clampSecs($('#builder-secs').value),
       items: builderSelection.filter((id) => exerciseById[id]),
     });
-    if (!store.set('custom', custom)) { alert(STORAGE_ERROR); return; }
+    if (!store.set('custom', custom)) { alert(t('storageError')); return; }
     renderHome();
     show('view-home');
+  });
+
+  /* ===== Sprache anwenden =====
+   * Die Markup-Texte tragen data-i18n (Textinhalt), data-i18n-aria,
+   * data-i18n-placeholder oder data-i18n-title. Platzhalter wie {n} füllt
+   * data-i18n-n. */
+  function applyStaticTexts() {
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const vars = el.dataset.i18nN ? { n: el.dataset.i18nN } : null;
+      el.textContent = t(el.dataset.i18n, vars);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+      el.setAttribute('aria-label', t(el.dataset.i18nAria));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+      el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+  }
+
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = t('metaTitle');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', t('metaDesc'));
+    $('#lang-select').value = lang;
+    applyStaticTexts();
+    // Sekundenzahl im Dialog-Button steht im Text, nicht im Markup.
+    $('#dialog-try').textContent = t('dialogTry', { secs: DIALOG_TRY_SECS });
+    renderHome();
+  }
+
+  $('#lang-select').addEventListener('change', (ev) => {
+    const next = ev.target.value;
+    if (!LANG_CODES.includes(next)) return;
+    lang = next;
+    store.set('lang', lang);
+    applyLang();
   });
 
   /* ===== Statische Icons einsetzen ===== */
@@ -576,7 +661,7 @@
 
   /* ===== Start ===== */
   $('#ring-fg').style.strokeDasharray = String(RING_CIRC);
-  renderHome();
+  applyLang();
 
   /* ===== Service Worker =====
    * Hier statt inline in index.html, damit die CSP ohne 'unsafe-inline' auskommt. */

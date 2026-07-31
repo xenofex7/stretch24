@@ -15,6 +15,7 @@ const CORE_ASSETS = [
   'index.html',
   'assets/style.css',
   'assets/icons.js',
+  'assets/i18n.js',
   'assets/data.js',
   'assets/app.js',
   'icon.svg',

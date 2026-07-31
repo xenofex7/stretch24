@@ -42,7 +42,7 @@
     "description": "24 geführte Dehnübungen, komplett gratis. Ohne Account, ohne Werbung, offline nutzbar.",
     "applicationCategory": "HealthApplication",
     "operatingSystem": "Any",
-    "inLanguage": "de",
+    "inLanguage": ["de", "en", "fr", "it", "es", "pt"],
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
     "license": "https://github.com/xenofex7/stretch24/blob/main/LICENSE"
   }
@@ -50,12 +50,12 @@
 </head>
 <body>
 
-  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+  <a class="skip-link" href="#main" data-i18n="skip">Zum Inhalt springen</a>
 
   <main id="main">
 
     <!-- ===== Home ===== -->
-    <section id="view-home" class="view active" tabindex="-1" aria-label="Übersicht">
+    <section id="view-home" class="view active" tabindex="-1" data-i18n-aria="homeAria" aria-label="Übersicht">
       <header class="hero">
         <div class="hero-inner">
           <div class="logo-row">
@@ -72,8 +72,16 @@
               <circle cx="32" cy="32" r="6" fill="var(--surface)"/>
             </svg>
             <h1>Stretch<span class="accent">24</span></h1>
+            <select class="lang-select" id="lang-select" data-i18n-aria="langLabel" aria-label="Sprache">
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="it">Italiano</option>
+              <option value="es">Español</option>
+              <option value="pt">Português</option>
+            </select>
           </div>
-          <p class="tagline">Dehnen für alle. Gratis, offen, ohne Schnickschnack.</p>
+          <p class="tagline" data-i18n="tagline">Dehnen für alle. Gratis, offen, ohne Schnickschnack.</p>
           <div class="streak-bar" id="streak-bar" hidden>
             <span id="streak-flame"></span>
             <span id="streak-text"></span>
@@ -82,47 +90,47 @@
       </header>
 
       <section class="section">
-        <h2>Routinen</h2>
+        <h2 data-i18n="routines">Routinen</h2>
         <div id="routine-list" class="card-grid"></div>
       </section>
 
       <section class="section">
         <div class="section-head">
-          <h2>Eigene Routinen</h2>
-          <button class="btn btn-ghost btn-with-icon" id="btn-new-routine">Neu</button>
+          <h2 data-i18n="customRoutines">Eigene Routinen</h2>
+          <button class="btn btn-ghost btn-with-icon" id="btn-new-routine"><span data-i18n="newRoutine">Neu</span></button>
         </div>
         <div id="custom-routine-list" class="card-grid"></div>
-        <p id="custom-empty" class="muted">Noch keine eigene Routine. Stell dir eine aus den 24 Übungen zusammen!</p>
+        <p id="custom-empty" class="muted" data-i18n="customEmpty" data-i18n-n="24">Noch keine eigene Routine. Stell dir eine aus den 24 Übungen zusammen!</p>
       </section>
 
       <section class="section">
-        <h2>Alle 24 Übungen</h2>
+        <h2 data-i18n="allExercises" data-i18n-n="24">Alle 24 Übungen</h2>
         <div id="exercise-list" class="exercise-grid"></div>
       </section>
 
       <footer class="footer">
-        <p>Stretch24 ist frei &amp; Open Source (MIT). Kein Account, keine Werbung, keine Datensammlung – dein Fortschritt bleibt auf deinem Gerät.</p>
-        <p class="muted">Kein Ersatz für medizinischen Rat. Dehne nur bis zu einem angenehmen Zug, nie in den Schmerz.</p>
-        <p class="muted">Illustrationen KI-generiert. <a href="https://github.com/xenofex7/stretch24">Quellcode, Kontakt &amp; Feedback auf GitHub</a>.</p>
+        <p data-i18n="footerFree">Stretch24 ist frei &amp; Open Source (MIT). Kein Account, keine Werbung, keine Datensammlung, dein Fortschritt bleibt auf deinem Gerät.</p>
+        <p class="muted" data-i18n="footerMedical">Kein Ersatz für medizinischen Rat. Dehne nur bis zu einem angenehmen Zug, nie in den Schmerz.</p>
+        <p class="muted"><span data-i18n="footerAi">Illustrationen KI-generiert.</span> <a href="https://github.com/xenofex7/stretch24" data-i18n="footerSource">Quellcode, Kontakt &amp; Feedback auf GitHub</a>.</p>
         <details class="privacy">
-          <summary>Datenschutz</summary>
+          <summary data-i18n="privacy">Datenschutz</summary>
           <ul>
-            <li>Alle Nutzungsdaten (eigene Routinen, Streak, Statistik, Ton-Einstellung) bleiben als localStorage in deinem Browser und werden nie übertragen. Zum Löschen genügt es, die Browserdaten dieser Seite zu entfernen.</li>
-            <li>Kein Tracking, keine Cookies, keine Werbung, keine Accounts, keine externen Dienste.</li>
-            <li>Gehostet auf GitHub Pages (GitHub Inc., USA). GitHub protokolliert beim Abruf technisch bedingt IP-Adresse und Browserkennung, siehe <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</li>
-            <li>Fragen oder Auskunft: <a href="https://github.com/xenofex7/stretch24/issues">GitHub Issues</a>.</li>
+            <li data-i18n="privacyLocal">Alle Nutzungsdaten (eigene Routinen, Streak, Statistik, Ton-Einstellung) bleiben als localStorage in deinem Browser und werden nie übertragen. Zum Löschen genügt es, die Browserdaten dieser Seite zu entfernen.</li>
+            <li data-i18n="privacyNoTracking">Kein Tracking, keine Cookies, keine Werbung, keine Accounts, keine externen Dienste.</li>
+            <li><span data-i18n="privacyHosting">Gehostet auf GitHub Pages (GitHub Inc., USA). GitHub protokolliert beim Abruf technisch bedingt IP-Adresse und Browserkennung, siehe</span> <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" data-i18n="privacyHostingLink">GitHub Privacy Statement</a>.</li>
+            <li><span data-i18n="privacyContact">Fragen oder Auskunft:</span> <a href="https://github.com/xenofex7/stretch24/issues" data-i18n="privacyContactLink">GitHub Issues</a>.</li>
           </ul>
         </details>
       </footer>
     </section>
 
     <!-- ===== Player ===== -->
-    <section id="view-player" class="view" tabindex="-1" aria-label="Übungs-Player">
+    <section id="view-player" class="view" tabindex="-1" data-i18n-aria="playerAria" aria-label="Übungs-Player">
       <div class="player">
         <div class="player-top">
-          <button class="btn btn-ghost" id="btn-quit" aria-label="Beenden"></button>
+          <button class="btn btn-ghost" id="btn-quit" data-i18n-aria="quit" aria-label="Beenden"></button>
           <div class="player-progress" id="player-progress"></div>
-          <button class="btn btn-ghost" id="btn-sound" aria-label="Ton an/aus"></button>
+          <button class="btn btn-ghost" id="btn-sound" data-i18n-aria="soundToggle" aria-label="Ton an/aus"></button>
         </div>
 
         <div class="player-stage">
@@ -132,7 +140,7 @@
               <circle class="ring-fg" id="ring-fg" cx="130" cy="130" r="120"/>
             </svg>
             <div class="pose" id="pose-figure"></div>
-            <div class="countdown" id="countdown" role="timer" aria-label="Verbleibende Sekunden">0</div>
+            <div class="countdown" id="countdown" role="timer" data-i18n-aria="countdownAria" aria-label="Verbleibende Sekunden">0</div>
           </div>
           <div class="side-badge" id="side-badge" hidden></div>
           <h1 class="player-title" id="player-title">…</h1>
@@ -141,45 +149,45 @@
         </div>
 
         <div class="player-controls">
-          <button class="btn btn-round" id="btn-prev" aria-label="Zurück"></button>
-          <button class="btn btn-round btn-big" id="btn-pause" aria-label="Pause"></button>
-          <button class="btn btn-round" id="btn-next" aria-label="Weiter"></button>
+          <button class="btn btn-round" id="btn-prev" data-i18n-aria="prev" aria-label="Zurück"></button>
+          <button class="btn btn-round btn-big" id="btn-pause" data-i18n-aria="pause" aria-label="Pause"></button>
+          <button class="btn btn-round" id="btn-next" data-i18n-aria="next" aria-label="Weiter"></button>
         </div>
         <p class="player-next muted" id="player-next"></p>
       </div>
     </section>
 
     <!-- ===== Fertig ===== -->
-    <section id="view-done" class="view" tabindex="-1" aria-label="Session abgeschlossen">
+    <section id="view-done" class="view" tabindex="-1" data-i18n-aria="doneAria" aria-label="Session abgeschlossen">
       <div class="done-screen">
         <div class="done-icon" id="done-icon"></div>
-        <h1>Geschafft!</h1>
+        <h1 data-i18n="doneTitle">Geschafft!</h1>
         <p id="done-summary"></p>
         <p id="done-streak" class="done-streak"></p>
-        <button class="btn btn-primary" id="btn-done-home">Zurück zur Übersicht</button>
+        <button class="btn btn-primary" id="btn-done-home" data-i18n="doneBack">Zurück zur Übersicht</button>
       </div>
     </section>
 
     <!-- ===== Routinen-Builder ===== -->
-    <section id="view-builder" class="view" tabindex="-1" aria-label="Eigene Routine erstellen">
+    <section id="view-builder" class="view" tabindex="-1" data-i18n-aria="builderAria" aria-label="Eigene Routine erstellen">
       <div class="builder">
         <div class="builder-head">
-          <button class="btn btn-ghost btn-with-icon" id="btn-builder-back">Zurück</button>
-          <h1>Eigene Routine</h1>
+          <button class="btn btn-ghost btn-with-icon" id="btn-builder-back"><span data-i18n="builderBack">Zurück</span></button>
+          <h1 data-i18n="builderTitle">Eigene Routine</h1>
         </div>
         <label class="field">
-          <span>Name</span>
-          <input type="text" id="builder-name" maxlength="40" placeholder="z.&nbsp;B. Meine Abendroutine">
+          <span data-i18n="builderName">Name</span>
+          <input type="text" id="builder-name" maxlength="40" data-i18n-placeholder="builderNamePlaceholder" placeholder="z. B. Meine Abendroutine">
         </label>
         <label class="field">
-          <span>Sekunden pro Übung: <strong id="builder-secs-label">30</strong></span>
+          <span><span data-i18n="builderSecs">Sekunden pro Übung:</span> <strong id="builder-secs-label">30</strong></span>
           <input type="range" id="builder-secs" min="15" max="90" step="5" value="30">
         </label>
-        <p class="muted">Übungen antippen zum Auswählen – die Reihenfolge entspricht deiner Auswahl.</p>
+        <p class="muted" data-i18n="builderHint">Übungen antippen zum Auswählen, die Reihenfolge entspricht deiner Auswahl.</p>
         <div id="builder-exercises" class="exercise-grid selectable"></div>
         <div class="builder-foot">
           <span id="builder-summary" class="muted"></span>
-          <button class="btn btn-primary" id="btn-builder-save" disabled>Speichern</button>
+          <button class="btn btn-primary" id="btn-builder-save" data-i18n="builderSave" disabled>Speichern</button>
         </div>
       </div>
     </section>
@@ -192,12 +200,13 @@
     <h2 id="dialog-title"></h2>
     <p id="dialog-desc"></p>
     <div class="dialog-actions">
-      <button class="btn btn-ghost" id="dialog-close">Schliessen</button>
+      <button class="btn btn-ghost" id="dialog-close" data-i18n="dialogClose">Schliessen</button>
       <button class="btn btn-primary" id="dialog-try">60 s ausprobieren</button>
     </div>
   </dialog>
 
   <script src="assets/icons.js" defer></script>
+  <script src="assets/i18n.js" defer></script>
   <script src="assets/data.js" defer></script>
   <script src="assets/app.js" defer></script>
 </body>

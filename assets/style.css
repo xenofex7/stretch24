@@ -142,6 +142,14 @@ h1, h2, h3 { line-height: 1.2; margin: 0 0 var(--space-2); }
 }
 .hero-inner { max-width: var(--width-content); margin: 0 auto; }
 .logo-row { display: flex; align-items: center; gap: var(--space-3); }
+/* Sprachwahl: sitzt rechts in der Kopfzeile, bewusst unauffällig. */
+.lang-select {
+  margin-left: auto;
+  font: inherit; font-size: var(--text-sm); color: var(--text);
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md); padding: var(--space-1) var(--space-2);
+  min-height: 2.75rem; cursor: pointer;
+}
 .logo { width: 56px; height: 56px; }
 .hero h1 { font-size: var(--text-hero); letter-spacing: -0.02em; }
 .tagline { font-size: var(--text-md); color: var(--muted); margin: var(--space-2) 0 0; }
