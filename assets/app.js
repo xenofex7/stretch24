@@ -27,7 +27,9 @@
    * Reihenfolge: gespeicherte Wahl, dann Browser-Sprachen, sonst Deutsch.
    * Texte kommen aus assets/i18n.js, die Übungs-IDs verbinden beides. */
   const LANG_CODES = LANGS.map((l) => l.code);
-  const DEFAULT_LANG = 'de';
+  /* Englisch als Fallback: deckt die meisten Besucher ab, deren Browser-
+   * sprache wir nicht anbieten, und passt zum statischen Stand in index.html. */
+  const DEFAULT_LANG = 'en';
 
   function detectLang() {
     const saved = store.get('lang', null);

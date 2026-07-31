@@ -1,7 +1,7 @@
 /* Stretch24 Service Worker – Cache-first, damit die App offline läuft */
 
 /* App-Shell: Version bei jeder Änderung an App-Dateien erhöhen. */
-const CACHE = 'stretch24-v19';
+const CACHE = 'stretch24-v20';
 
 /* Illustrationen liegen in einem eigenen Cache, der App-Updates überlebt -
  * sonst würde jeder Versions-Bump die komplette Bildstrecke erneut laden.

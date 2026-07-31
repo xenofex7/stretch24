@@ -68,7 +68,7 @@ const langCodes = LANGS.map((l) => l.code);
 diff('Sprachen', langCodes, Object.keys(I18N), 'LANGS', 'I18N');
 diff('Sprachen', Object.keys(I18N), langCodes, 'I18N', 'LANGS');
 
-const REF = 'de';
+const REF = 'en'; // Referenzsprache = DEFAULT_LANG in app.js
 for (const code of Object.keys(I18N)) {
   const l = I18N[code];
   diff(`i18n ${code} ui`, Object.keys(I18N[REF].ui), Object.keys(l.ui || {}), REF, code);
