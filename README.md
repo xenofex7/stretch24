@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/github/v/tag/xenofex7/stretch24?label=version" alt="Version">
   <a href="https://github.com/xenofex7/stretch24/actions/workflows/pages.yml"><img src="https://github.com/xenofex7/stretch24/actions/workflows/pages.yml/badge.svg" alt="Deploy"></a>
   <img src="https://img.shields.io/badge/dependencies-none-brightgreen" alt="No dependencies">
   <img src="https://img.shields.io/github/license/xenofex7/stretch24" alt="License">
