@@ -1,13 +1,13 @@
 /* Stretch24 Service Worker – Cache-first, damit die App offline läuft */
 
 /* App-Shell: Version bei jeder Änderung an App-Dateien erhöhen. */
-const CACHE = 'stretch24-v20';
+const CACHE = 'stretch24-v21';
 
 /* Illustrationen liegen in einem eigenen Cache, der App-Updates überlebt -
  * sonst würde jeder Versions-Bump die komplette Bildstrecke erneut laden.
  * Diese Version erhöht nur tools/generate-images.mjs, wenn Bilder neu
  * geschrieben wurden. */
-const IMG_CACHE = 'stretch24-img-v1';
+const IMG_CACHE = 'stretch24-img-v2';
 
 /* Kern-Assets: ohne sie startet die App nicht. */
 const CORE_ASSETS = [

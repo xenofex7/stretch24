@@ -1,18 +1,21 @@
 /* ===== Stretch24 ===== */
 :root {
+  /* Farbwerte stehen als light-dark(hell, dunkel) nur einmal da. Welche
+   * Hälfte gilt, entscheidet color-scheme - per Voreinstellung das System,
+   * sonst die Wahl im Footer (data-theme, gesetzt von app.js). */
   color-scheme: light dark;
-  --accent: #10b981;
-  --accent-soft: #10b98122;
-  --accent-strong: #047857;
+  --accent: light-dark(#10b981, #34d399);
+  --accent-soft: light-dark(#10b98122, #34d39922);
+  --accent-strong: light-dark(#047857, #6ee7b7);
   --accent-ink: #05281c;   /* Text auf Akzent-Flächen, dunkel genug für AA in beiden Themes */
-  --danger: #e11d48;
-  --bg: #f6faf8;
-  --surface: #ffffff;
-  --text: #17332a;
-  --muted: #566e64;
-  --border: #dcebe4;
-  --border-strong: #6f8d80; /* Formularfelder: mind. 3:1 gegen die Fläche */
-  --shadow: 0 4px 20px rgba(23, 51, 42, 0.08);
+  --danger: light-dark(#e11d48, #fb7185);
+  --bg: light-dark(#f6faf8, #0d1614);
+  --surface: light-dark(#ffffff, #16211d);
+  --text: light-dark(#17332a, #e5f2ec);
+  --muted: light-dark(#566e64, #8aa79b);
+  --border: light-dark(#dcebe4, #223730);
+  --border-strong: light-dark(#6f8d80, #8aa79b); /* Formularfelder: mind. 3:1 gegen die Fläche */
+  --shadow: 0 4px 20px light-dark(rgba(23, 51, 42, 0.08), rgba(0, 0, 0, 0.35));
 
   /* Abstände: 4-px-Raster, die Zahl im Namen ist der Faktor (space-3 = 12 px). */
   --space-1: 0.25rem;
@@ -46,21 +49,10 @@
   --width-content: 900px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1614;
-    --surface: #16211d;
-    --text: #e5f2ec;
-    --muted: #8aa79b;
-    --border: #223730;
-    --border-strong: #8aa79b;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-    --accent: #34d399;
-    --accent-soft: #34d39922;
-    --accent-strong: #6ee7b7;
-    --danger: #fb7185;
-  }
-}
+/* Feste Wahl aus dem Footer: schaltet zugleich das Chrome des Browsers
+ * (Scrollbars, Formularfelder, Dialog-Defaults) auf das richtige Schema. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 
@@ -142,14 +134,6 @@ h1, h2, h3 { line-height: 1.2; margin: 0 0 var(--space-2); }
 }
 .hero-inner { max-width: var(--width-content); margin: 0 auto; }
 .logo-row { display: flex; align-items: center; gap: var(--space-3); }
-/* Sprachwahl: sitzt rechts in der Kopfzeile, bewusst unauffällig. */
-.lang-select {
-  margin-left: auto;
-  font: inherit; font-size: var(--text-sm); color: var(--text);
-  background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md); padding: var(--space-1) var(--space-2);
-  min-height: 2.75rem; cursor: pointer;
-}
 .logo { width: 56px; height: 56px; }
 .hero h1 { font-size: var(--text-hero); letter-spacing: -0.02em; }
 .tagline { font-size: var(--text-md); color: var(--muted); margin: var(--space-2) 0 0; }
@@ -394,6 +378,16 @@ dialog p { color: var(--muted); font-size: var(--text-sm); }
   font-size: var(--text-sm); color: var(--muted);
 }
 .footer a { color: var(--accent-strong); }
+/* Sprache und Erscheinungsbild: bewusst unten, weil beides einmal
+ * eingestellt und dann nicht mehr angefasst wird. */
+.footer-settings { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-6); }
+.setting { display: grid; gap: var(--space-1); font-weight: 600; }
+.setting-select {
+  font: inherit; font-size: var(--text-sm); font-weight: 400; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md); padding: var(--space-1) var(--space-2);
+  min-height: 2.75rem; cursor: pointer;
+}
 .footer .privacy summary { cursor: pointer; font-weight: 600; }
 .footer .privacy ul { margin: var(--space-2) 0 0; padding-left: var(--space-5); }
 .footer .privacy li { margin-bottom: var(--space-1); }

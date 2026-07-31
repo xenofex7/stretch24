@@ -116,6 +116,27 @@
 
   let soundOn = store.get('sound', false) === true;
 
+  /* ===== Erscheinungsbild =====
+   * 'system' folgt der Betriebssystem-Einstellung (Voreinstellung), sonst
+   * setzt data-theme das color-scheme fest, aus dem style.css die Farben
+   * über light-dark() zieht. */
+  const THEMES = ['system', 'light', 'dark'];
+  const THEME_COLORS = { light: '#10b981', dark: '#0d1614' };
+  const savedTheme = store.get('theme', null);
+  let theme = THEMES.includes(savedTheme) ? savedTheme : 'system';
+
+  function applyTheme() {
+    const root = document.documentElement;
+    if (theme === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', theme);
+    // Statusleiste der installierten App mitziehen: bei fester Wahl bekommen
+    // beide Media-Varianten dieselbe Farbe, bei 'system' wieder je ihre eigene.
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+      const own = meta.media.includes('dark') ? 'dark' : 'light';
+      meta.content = THEME_COLORS[theme === 'system' ? own : theme];
+    });
+  }
+
   /* ===== Views ===== */
   function show(viewId) {
     document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
@@ -638,6 +659,7 @@
     document.title = t('metaTitle');
     document.querySelector('meta[name="description"]')?.setAttribute('content', t('metaDesc'));
     $('#lang-select').value = lang;
+    $('#theme-select').value = theme;
     applyStaticTexts();
     // Sekundenzahl im Dialog-Button steht im Text, nicht im Markup.
     $('#dialog-try').textContent = t('dialogTry', { secs: DIALOG_TRY_SECS });
@@ -652,6 +674,14 @@
     applyLang();
   });
 
+  $('#theme-select').addEventListener('change', (ev) => {
+    const next = ev.target.value;
+    if (!THEMES.includes(next)) return;
+    theme = next;
+    store.set('theme', theme);
+    applyTheme();
+  });
+
   /* ===== Statische Icons einsetzen ===== */
   $('#btn-quit').innerHTML = ICONS.x;
   $('#btn-prev').innerHTML = ICONS.skipBack;
@@ -663,6 +693,7 @@
 
   /* ===== Start ===== */
   $('#ring-fg').style.strokeDasharray = String(RING_CIRC);
+  applyTheme();
   applyLang();
 
   /* ===== Service Worker =====

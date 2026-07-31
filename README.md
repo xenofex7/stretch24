@@ -27,11 +27,11 @@ device. Available in German, English, French, Italian, Spanish and Portuguese.
   spoken cues and signal tones
 - 8 ready-made routines, from a 4-minute wake-up to a 15-minute full body session
 - Custom routines: pick the exercises and the seconds per exercise
-- Six languages, picked from your browser settings and switchable in the header
+- Six languages, picked from your browser settings and switchable in the footer
 - Streak and stats, stored on your device only (localStorage)
 - Installable PWA, usable offline, keeps the screen on during a session
-- Automatic dark mode, keyboard shortcuts, responsive, respects
-  `prefers-reduced-motion`
+- Dark mode following your system, switchable to light or dark in the footer
+- Keyboard shortcuts, responsive, respects `prefers-reduced-motion`
 
 ## Installation
 
@@ -68,7 +68,9 @@ format, cache discipline) are documented in [`CLAUDE.md`](CLAUDE.md).
 
 ### Exercise illustrations
 
-One PNG per exercise ID in `assets/img/`, 512 px, flat mint background. The app
+One PNG per exercise ID in `assets/img/`, 512 px, flat mint background, plus a
+256 px version in `assets/img/thumb/` for the exercise grid. Both are quantised
+with pngquant without dithering, which keeps the whole set around 300 KB. The app
 crops them round and mirrors left/right exercises with CSS, so only one direction
 is generated.
 

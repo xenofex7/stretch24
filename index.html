@@ -80,14 +80,6 @@
               <circle cx="32" cy="32" r="6" fill="var(--surface)"/>
             </svg>
             <h1>Stretch<span class="accent">24</span></h1>
-            <select class="lang-select" id="lang-select" data-i18n-aria="langLabel" aria-label="Language">
-              <option value="de">Deutsch</option>
-              <option value="en">English</option>
-              <option value="fr">Français</option>
-              <option value="it">Italiano</option>
-              <option value="es">Español</option>
-              <option value="pt">Português</option>
-            </select>
           </div>
           <p class="tagline" data-i18n="tagline">Stretching for everyone. Free, open, no frills.</p>
           <div class="streak-bar" id="streak-bar" hidden>
@@ -117,6 +109,27 @@
       </section>
 
       <footer class="footer">
+        <div class="footer-settings">
+          <label class="setting">
+            <span data-i18n="langLabel">Language</span>
+            <select class="setting-select" id="lang-select">
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="it">Italiano</option>
+              <option value="es">Español</option>
+              <option value="pt">Português</option>
+            </select>
+          </label>
+          <label class="setting">
+            <span data-i18n="themeLabel">Appearance</span>
+            <select class="setting-select" id="theme-select">
+              <option value="system" data-i18n="themeSystem">System</option>
+              <option value="light" data-i18n="themeLight">Light</option>
+              <option value="dark" data-i18n="themeDark">Dark</option>
+            </select>
+          </label>
+        </div>
         <p data-i18n="footerFree">Stretch24 is free and open source (MIT). No account, no ads, no data collection, your progress stays on your device.</p>
         <p class="muted" data-i18n="footerMedical">Not a substitute for medical advice. Only stretch to a comfortable pull, never into pain.</p>
         <p class="muted"><span data-i18n="footerAi">Illustrations are AI generated.</span> <a href="https://github.com/xenofex7/stretch24" data-i18n="footerSource">Source code, contact and feedback on GitHub</a>.</p>

@@ -31,13 +31,20 @@ Kontrast-Regeln, die nicht verhandelbar sind:
   auf Grün erreicht in keinem der beiden Themes AA.
 - Bedienelement-Rahmen und Fortschrittsanzeigen brauchen 3:1 gegen ihre
   Fläche, deshalb `--border-strong` bzw. `--accent-strong`.
-- Neue Farbwerte kommen als Token dazu, inklusive Dark-Variante. Direkte
-  Hex-Werte in Regeln sind ein Fehler (Ausnahme: der Dialog-Backdrop, der
-  in beiden Themes gleich dunkel sein soll).
+- Neue Farbwerte kommen als Token dazu, immer als `light-dark()`-Paar.
+  Direkte Hex-Werte in Regeln sind ein Fehler (Ausnahme: der
+  Dialog-Backdrop, der in beiden Themes gleich dunkel sein soll).
 
-Das Dark-Theme hängt an `prefers-color-scheme`, es gibt bewusst keinen
-manuellen Umschalter. `color-scheme: light dark` sorgt dafür, dass auch
-Scrollbars und Formular-Chrome mitziehen.
+Jeder Farbwert steht als `light-dark(hell, dunkel)` genau einmal in
+`:root`, es gibt keinen zweiten Token-Block für Dark. Welche Hälfte gilt,
+entscheidet `color-scheme` - und damit ziehen auch Scrollbars und
+Formular-Chrome automatisch mit.
+
+Voreingestellt ist `color-scheme: light dark`, also die System-Einstellung.
+Die Auswahl "Erscheinungsbild" im Footer setzt `data-theme="light"` bzw.
+`"dark"` auf `<html>` und nagelt `color-scheme` damit fest; `app.js` zieht
+zusätzlich die `theme-color`-Metas nach, damit die installierte App die
+passende Statusleiste bekommt.
 
 ## Abstände
 
