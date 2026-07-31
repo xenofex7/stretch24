@@ -6,9 +6,14 @@
  */
 
 /* Illustration einer Übung. eager: Player & Dialog laden sofort mit hoher
- * Priorität, das Übungsraster lazy. */
-const figureHTML = (ex, { eager = false } = {}) =>
-  `<img class="figure figure-img" src="assets/img/${ex.id}.png" alt="" width="512" height="512" decoding="async" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'}>`;
+ * Priorität und in der 512er-Fassung, das Übungsraster lazy und als
+ * 256er-Thumb (dort ist das Bild nur 82 px gross). */
+const figureHTML = (ex, { eager = false } = {}) => {
+  const src = eager ? `assets/img/${ex.id}.png` : `assets/img/thumb/${ex.id}.png`;
+  const size = eager ? 512 : 256;
+  const loading = eager ? 'fetchpriority="high"' : 'loading="lazy"';
+  return `<img class="figure figure-img" src="${src}" alt="" width="${size}" height="${size}" decoding="async" ${loading}>`;
+};
 
 /* sides: true → Übung wird links & rechts ausgeführt */
 const EXERCISES = [
@@ -64,25 +69,25 @@ const EXERCISES = [
 
 /* Routinen: items = Übungs-IDs, secs = Sekunden pro Seite/Übung, icon = Lucide-Icon aus icons.js */
 const ROUTINES = [
-  { id: 'morning', icon: 'sunrise', name: 'Guten Morgen', secs: 25,
+  { id: 'morning', icon: 'sunrise', name: 'Guten Morgen', secs: 30, shuffle: true,
     blurb: 'Sanft wach werden – Ganzkörper in 5 Minuten.',
     items: ['full-stretch', 'cat-cow', 'down-dog', 'forward-fold', 'side-bend', 'neck-side', 'shoulder-roll'] },
-  { id: 'desk', icon: 'laptop', name: 'Schreibtisch-Pause', secs: 25,
+  { id: 'desk', icon: 'laptop', name: 'Schreibtisch-Pause', secs: 30, shuffle: true,
     blurb: 'Nacken, Schultern & Handgelenke – im Stehen, ohne Matte.',
     items: ['shoulder-roll', 'neck-side', 'neck-front', 'shoulder-cross', 'triceps', 'wrist', 'chest-opener', 'side-bend'] },
-  { id: 'fullbody15', icon: 'personStanding', name: 'Full Body 15', secs: 35,
+  { id: 'fullbody15', icon: 'personStanding', name: 'Full Body 15', secs: 30, shuffle: true,
     blurb: 'Der Klassiker: einmal alles, in einer Viertelstunde.',
     items: ['shoulder-roll', 'neck-side', 'shoulder-cross', 'chest-opener', 'side-bend', 'forward-fold', 'hamstring', 'quad', 'calf', 'lunge', 'cat-cow', 'down-dog', 'cobra', 'butterfly', 'seated-twist', 'supine-twist', 'child'] },
-  { id: 'back', icon: 'leaf', name: 'Rücken-Reset', secs: 35,
+  { id: 'back', icon: 'leaf', name: 'Rücken-Reset', secs: 30, shuffle: true,
     blurb: 'Länge und Entspannung für die Wirbelsäule.',
     items: ['cat-cow', 'child', 'cobra', 'down-dog', 'seated-twist', 'supine-twist', 'fig4', 'full-stretch'] },
-  { id: 'hips', icon: 'expand', name: 'Hüft-Öffner', secs: 40,
+  { id: 'hips', icon: 'expand', name: 'Hüft-Öffner', secs: 30, shuffle: true,
     blurb: 'Für alle, die viel sitzen: Hüfte, Gesäss & Leiste.',
     items: ['hip-flexor', 'lunge', 'pigeon', 'butterfly', 'fig4', 'supine-twist'] },
-  { id: 'runner', icon: 'dumbbell', name: 'Nach dem Sport', secs: 30,
+  { id: 'runner', icon: 'dumbbell', name: 'Nach dem Sport', secs: 30, shuffle: true,
     blurb: 'Beine & Waden nach Laufen, Rad oder Training.',
     items: ['quad', 'hamstring', 'calf', 'hip-flexor', 'fig4', 'forward-fold', 'child'] },
-  { id: 'evening', icon: 'moon', name: 'Feierabend', secs: 40,
+  { id: 'evening', icon: 'moon', name: 'Feierabend', secs: 30, shuffle: true,
     blurb: 'Runterfahren nach dem Tag, ruhig Richtung Schlaf.',
     items: ['forward-fold', 'child', 'cat-cow', 'supine-twist', 'fig4', 'butterfly', 'full-stretch'] },
   /* random: statt fester items werden beim Start so viele zufällige Übungen gezogen */

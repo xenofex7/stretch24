@@ -6,6 +6,10 @@
   const exerciseById = Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
 
   /* ===== Storage ===== */
+  const STORAGE_ERROR = 'Speichern nicht möglich: Der Browser-Speicher ist voll '
+    + 'oder blockiert (z.B. privater Modus). Deine Routinen bleiben nur bis zum '
+    + 'Schliessen des Tabs erhalten.';
+
   const store = {
     get(key, fallback) {
       try {
@@ -13,8 +17,13 @@
         return raw === null ? fallback : JSON.parse(raw);
       } catch { return fallback; }
     },
+    /* Gibt false zurück, wenn der Speicher voll oder blockiert ist
+     * (z.B. Safari im privaten Modus). Aufrufer mit Nutzerdaten melden das. */
     set(key, value) {
-      try { localStorage.setItem('s24.' + key, JSON.stringify(value)); } catch {}
+      try {
+        localStorage.setItem('s24.' + key, JSON.stringify(value));
+        return true;
+      } catch { return false; }
     },
   };
 
@@ -64,7 +73,7 @@
     return { last, count: cleanCount(s?.count) };
   }
 
-  let soundOn = store.get('sound', true) !== false;
+  let soundOn = store.get('sound', false) === true;
 
   /* ===== Views ===== */
   function show(viewId) {
@@ -117,18 +126,21 @@
     const steps = routine.random
       ? Math.round(routine.random * 1.5)
       : routine.items.reduce((n, id) => n + (exerciseById[id]?.sides ? 2 : 1), 0);
-    return Math.round((steps * routine.secs) / 60);
+    return Math.round((steps * routine.secs + Math.max(0, steps - 1) * REST_SECS) / 60);
   }
 
-  /* n zufällige Übungs-IDs ziehen (Fisher-Yates) */
-  function randomExercises(n) {
-    const ids = EXERCISES.map((ex) => ex.id);
-    for (let i = ids.length - 1; i > 0; i--) {
+  /* Kopie eines Arrays in zufälliger Reihenfolge (Fisher-Yates) */
+  function shuffled(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [ids[i], ids[j]] = [ids[j], ids[i]];
+      [a[i], a[j]] = [a[j], a[i]];
     }
-    return ids.slice(0, n);
+    return a;
   }
+
+  /* n zufällige Übungs-IDs ziehen */
+  const randomExercises = (n) => shuffled(EXERCISES.map((ex) => ex.id)).slice(0, n);
 
   function routineCard(routine, { deletable = false } = {}) {
     const card = document.createElement('button');
@@ -139,7 +151,9 @@
       <span class="card-desc">${routine.blurb ? esc(routine.blurb) : `${routine.items.length} Übungen, selbst zusammengestellt.`}</span>
       <span class="meta">~ ${routineDuration(routine)} Min · ${routine.random || routine.items.length} Übungen</span>`;
     card.addEventListener('click', () => startRoutine(
-      routine.random ? { ...routine, items: randomExercises(routine.random) } : routine
+      routine.random ? { ...routine, items: randomExercises(routine.random) }
+      : routine.shuffle ? { ...routine, items: shuffled(routine.items) }
+      : routine
     ));
     if (!deletable) return card;
 
@@ -154,7 +168,10 @@
     del.setAttribute('aria-label', `${routine.name} löschen`);
     del.addEventListener('click', () => {
       if (!confirm(`"${routine.name}" löschen?`)) return;
-      store.set('custom', loadCustomRoutines().filter((r) => r.id !== routine.id));
+      if (!store.set('custom', loadCustomRoutines().filter((r) => r.id !== routine.id))) {
+        alert(STORAGE_ERROR);
+        return;
+      }
       renderHome();
     });
     slot.appendChild(del);
@@ -366,19 +383,25 @@
     player.remaining = REST_SECS;
     player.phaseTotal = REST_SECS;
 
+    // Die Pause selbst nicht benennen – stattdessen die nächste Übung
+    // mit Bild und Beschreibung ankündigen.
     const next = player.steps[player.index + 1];
     $('#view-player').classList.add('resting');
     $('#side-badge').hidden = true;
-    $('#player-title').textContent = 'Kurze Pause';
-    $('#player-hint').textContent = next ? `Mach dich bereit für: ${next.ex.name}` : '';
-    $('#player-announce').textContent = `Kurze Pause, ${REST_SECS} Sekunden`;
+    $('#pose-figure').innerHTML = figureHTML(next.ex, { eager: true });
+    $('#pose-figure').classList.toggle('flip', next.side === 'rechts');
+    $('#player-title').textContent = `Es folgt: ${next.ex.name}`;
+    $('#player-hint').textContent = next.ex.desc;
+    $('#player-announce').textContent = next.side
+      ? `Es folgt: ${next.ex.name}, ${next.side === 'links' ? 'linke' : 'rechte'} Seite`
+      : `Es folgt: ${next.ex.name}`;
     $('#player-next').textContent = '';
 
     document.querySelectorAll('#player-progress .seg').forEach((seg, i) => {
       seg.className = 'seg' + (i <= player.index ? ' done' : '');
     });
 
-    speak('Kurze Pause');
+    speak(`Es folgt: ${next.ex.name}`);
     updateCountdown(true);
     player.timerId = setInterval(tick, 1000);
   }
@@ -513,7 +536,7 @@
   function updateBuilderSummary() {
     const secs = Number($('#builder-secs').value);
     const steps = builderSelection.reduce((n, id) => n + (exerciseById[id]?.sides ? 2 : 1), 0);
-    const mins = Math.round((steps * secs) / 60);
+    const mins = Math.round((steps * secs + Math.max(0, steps - 1) * REST_SECS) / 60);
     $('#builder-summary').textContent = builderSelection.length
       ? `${builderSelection.length} Übungen · ~ ${mins} Min`
       : 'Keine Übung ausgewählt';
@@ -537,7 +560,7 @@
       secs: clampSecs($('#builder-secs').value),
       items: builderSelection.filter((id) => exerciseById[id]),
     });
-    store.set('custom', custom);
+    if (!store.set('custom', custom)) { alert(STORAGE_ERROR); return; }
     renderHome();
     show('view-home');
   });

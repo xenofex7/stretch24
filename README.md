@@ -1,89 +1,95 @@
-# Stretch24 🧘
+# Stretch24
 
-**Dehnen für alle. Gratis, offen, ohne Schnickschnack.**
+<p align="center">
+  <img src="icon.svg" alt="Stretch24 logo" width="120">
+</p>
 
-[![Deploy](https://github.com/xenofex7/stretch24/actions/workflows/pages.yml/badge.svg)](https://github.com/xenofex7/stretch24/actions/workflows/pages.yml)
+<p align="center">
+  <a href="https://github.com/xenofex7/stretch24/actions/workflows/pages.yml"><img src="https://github.com/xenofex7/stretch24/actions/workflows/pages.yml/badge.svg" alt="Deploy"></a>
+  <img src="https://img.shields.io/badge/dependencies-none-brightgreen" alt="No dependencies">
+  <img src="https://img.shields.io/github/license/xenofex7/stretch24" alt="License">
+  <img src="https://img.shields.io/github/last-commit/xenofex7/stretch24" alt="Last commit">
+  <img src="https://img.shields.io/github/commit-activity/m/xenofex7/stretch24" alt="Commit activity">
+</p>
 
-**Live: <https://xenofex7.github.io/stretch24/>**
+<p align="center">
+  <a href="https://xenofex7.github.io/stretch24/"><strong>Open the app</strong></a>
+</p>
 
-Stretch24 ist eine freie Web-App mit 24 geführten Dehnübungen – komplett
-kostenlos, ohne Account, ohne Werbung und ohne Datensammlung. Alles läuft
-direkt im Browser.
+Stretch24 is a free web app with 24 guided stretching exercises - no account, no
+ads, no tracking. Everything runs in the browser, works offline and stays on your
+device. The user interface is in German.
 
 ## Features
 
-- 🧘 **24 Übungen** mit Anleitung und flachen Illustrationen – von Nacken
-  bis Wade, sortiert nach Körperregion
-- ▶️ **Geführter Player** mit Countdown-Ring, automatischem Seitenwechsel
-  (links/rechts), Sprachansagen und Signaltönen
-- 📋 **6 fertige Routinen**: Guten Morgen, Schreibtisch-Pause, Full Body 15,
-  Rücken-Reset, Hüft-Öffner, Nach dem Sport
-- ⭐ **Eigene Routinen** zusammenstellen (Übungen + Sekunden pro Übung)
-- 🔥 **Streak & Statistik** – bleibt komplett auf deinem Gerät (localStorage)
-- 📱 **PWA**: installierbar und offline nutzbar, Bildschirm bleibt während der
-  Session an (Wake Lock)
-- 🌙 Automatischer Dark Mode, responsive, barrierearm, `prefers-reduced-motion`
-  wird respektiert
+- 24 exercises with instructions and flat illustrations, sorted by body region
+- Guided player with countdown ring, automatic left/right switch, rest phases,
+  spoken cues and signal tones
+- 8 ready-made routines, from a 4-minute wake-up to a 15-minute full body session
+- Custom routines: pick the exercises and the seconds per exercise
+- Streak and stats, stored on your device only (localStorage)
+- Installable PWA, usable offline, keeps the screen on during a session
+- Automatic dark mode, keyboard shortcuts, responsive, respects
+  `prefers-reduced-motion`
 
-## Technik
+## Installation
 
-Bewusst simpel gehalten:
-
-- Reines HTML, CSS und Vanilla-JavaScript – **kein Framework, kein Build-Schritt,
-  keine Abhängigkeiten**
-- Keine Server-Komponente: statisches Hosting genügt (GitHub Pages, Netlify,
-  eigener Webspace, …)
-- Service Worker für Offline-Betrieb
-
-## Lokal ausprobieren
+Any static web server works. For example:
 
 ```bash
-# beliebiger statischer Server, z. B.:
+git clone https://github.com/xenofex7/stretch24.git
+cd stretch24
 python3 -m http.server 8000
-# dann http://localhost:8000 öffnen
 ```
 
-(Direktes Öffnen von `index.html` per Doppelklick funktioniert auch – nur der
-Service Worker bleibt dann inaktiv.)
+The app is now running at `http://localhost:8000`. Opening `index.html` directly
+works too, but the service worker stays inactive.
 
-## Deployment auf GitHub Pages
+## Development
 
-Jeder Push auf `main` deployt automatisch über den Workflow
-[`pages.yml`](.github/workflows/pages.yml) (Pages-Source "GitHub Actions").
-Es wird nichts gebaut, der Repo-Inhalt ist die App.
+No framework, no build step, no runtime dependencies - plain HTML, CSS and
+vanilla JavaScript. Exercises and routines live in
+[`assets/data.js`](assets/data.js), icons in
+[`assets/icons.js`](assets/icons.js).
 
-## Illustrationen generieren (optional)
+Bump `CACHE` in [`sw.js`](sw.js) whenever an app file or an image changes,
+otherwise the cache-first service worker keeps serving the old version.
 
-Die Übungs-Illustrationen liegen in `assets/img/` (eine PNG pro Übungs-ID,
-512 px, flacher Mint-Hintergrund; die App schneidet sie rund zu und spiegelt
-bei Links/Rechts-Übungen per CSS).
+Pull requests are welcome. The binding conventions (Swiss orthography, commit
+format, cache discipline) are documented in [`CLAUDE.md`](CLAUDE.md).
 
-Zum Generieren per OpenAI-API (`gpt-image-1`) gibt es
-[`tools/generate-images.mjs`](tools/generate-images.mjs) und den
-GitHub-Actions-Workflow **"Generate exercise images"** (manuell startbar
-unter *Actions*). Voraussetzung: Repo-Secret `OPENAI_API_KEY`
-(*Settings → Secrets and variables → Actions*). Der Workflow generiert nur
-fehlende Bilder, komprimiert sie (pngquant), committet sie und stösst das
-Pages-Deployment an. Optional sorgt eine Stil-Referenz unter
-`assets/img/_reference.png` (nicht im Repo, lokal ablegen) für konsistente
-Figuren über alle Bilder.
+### Exercise illustrations
 
-## Mitmachen
+One PNG per exercise ID in `assets/img/`, 512 px, flat mint background. The app
+crops them round and mirrors left/right exercises with CSS, so only one direction
+is generated.
 
-Neue Übungen, bessere Illustrationen, Übersetzungen – Pull Requests sind
-willkommen! Übungen liegen als einfache Datenobjekte in
-[`assets/data.js`](assets/data.js). Die verbindlichen Konventionen (Sprache,
-Commits, Cache-Version in `sw.js` bei jeder Asset-Änderung erhöhen) stehen
-in [`CLAUDE.md`](CLAUDE.md).
+Missing images are created by the **Generate exercise images** workflow (run it
+from the *Actions* tab), which needs the `OPENAI_API_KEY` repo secret. It only
+generates what is missing, compresses the result with pngquant, commits it and
+triggers the Pages deployment. Locally:
 
-## Hinweis
+```bash
+OPENAI_API_KEY=... node tools/generate-images.mjs --only=neck-side --quality=high
+```
 
-Stretch24 ist kein Ersatz für medizinischen Rat. Dehne nur bis zu einem
-angenehmen Zug, nie in den Schmerz.
+### Deployment
 
-## Lizenz
+Every push to `main` deploys to GitHub Pages via
+[`pages.yml`](.github/workflows/pages.yml). Nothing is built, the repo content is
+the app.
 
-[MIT](LICENSE) – nutze, kopiere und verändere die App, wie du magst.
+## Disclaimer
 
-UI-Icons: [Lucide](https://lucide.dev) (ISC-Lizenz, siehe [NOTICE](NOTICE)),
-als Inline-SVG eingebettet. Übungs-Illustrationen KI-generiert (`gpt-image-1`).
+Stretch24 is not a substitute for medical advice. Only stretch to a comfortable
+pull, never into pain.
+
+## Credits
+
+- UI icons: [Lucide](https://lucide.dev), ISC licensed, inlined as SVG - see
+  [NOTICE](NOTICE)
+- Exercise illustrations generated with OpenAI `gpt-image-1`
+
+## License
+
+MIT, see [LICENSE](LICENSE).

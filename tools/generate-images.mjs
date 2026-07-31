@@ -3,7 +3,11 @@
  *
  * Generiert die Übungs-Illustrationen über die OpenAI-Images-API (gpt-image-1)
  * und legt sie als assets/img/<id>.png ab. Danach werden die IMG_ASSETS-Liste
- * und die Cache-Version in sw.js automatisch aktualisiert.
+ * und die Cache-Versionen in sw.js automatisch aktualisiert.
+ *
+ * Die 256er-Thumbs unter assets/img/thumb/ erzeugt der Workflow
+ * "Generate exercise images" (ImageMagick). Wer lokal generiert, muss sie
+ * selbst nachziehen, sonst schlägt tools/check-consistency.mjs an.
  *
  * Aufruf:  OPENAI_API_KEY=... node tools/generate-images.mjs [Optionen]
  *   --only=neck-side,down-dog   nur diese Übungs-IDs
@@ -118,10 +122,17 @@ async function generate(id, pose) {
   writeFileSync(resolve(IMG_DIR, `${id}.png`), Buffer.from(b64, 'base64'));
 }
 
+/* Beide Cache-Versionen erhöhen: die App-Shell, damit der neue Stand greift,
+ * und den Bild-Cache, weil sonst der alte Bildstand darin liegen bliebe.
+ * Der Bild-Cache wird ausschliesslich hier erhöht, App-Updates lassen ihn
+ * bewusst unberührt. */
 function bumpSwVersion() {
   const swPath = resolve(ROOT, 'sw.js');
   const sw = readFileSync(swPath, 'utf8');
-  writeFileSync(swPath, sw.replace(/stretch24-v(\d+)/, (_, n) => `stretch24-v${Number(n) + 1}`));
+  const bumped = sw
+    .replace(/stretch24-v(\d+)/, (_, n) => `stretch24-v${Number(n) + 1}`)
+    .replace(/stretch24-img-v(\d+)/, (_, n) => `stretch24-img-v${Number(n) + 1}`);
+  writeFileSync(swPath, bumped);
 }
 
 function updateAppFiles(generatedCount) {

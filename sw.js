@@ -1,5 +1,13 @@
 /* Stretch24 Service Worker – Cache-first, damit die App offline läuft */
-const CACHE = 'stretch24-v16';
+
+/* App-Shell: Version bei jeder Änderung an App-Dateien erhöhen. */
+const CACHE = 'stretch24-v19';
+
+/* Illustrationen liegen in einem eigenen Cache, der App-Updates überlebt -
+ * sonst würde jeder Versions-Bump die komplette Bildstrecke erneut laden.
+ * Diese Version erhöht nur tools/generate-images.mjs, wenn Bilder neu
+ * geschrieben wurden. */
+const IMG_CACHE = 'stretch24-img-v1';
 
 /* Kern-Assets: ohne sie startet die App nicht. */
 const CORE_ASSETS = [
@@ -46,24 +54,39 @@ const IMG_ASSETS = [
   'assets/img/wrist.png',
 ];
 
+/* Kleine Variante fürs Übungsraster (256 px statt 512 px). */
+const THUMB_ASSETS = IMG_ASSETS.map((url) => url.replace('assets/img/', 'assets/img/thumb/'));
+
+const isImage = (url) => url.origin === location.origin && url.pathname.includes('/assets/img/');
+
+/* Nur fehlende Bilder holen: so kostet ein App-Update keinen erneuten
+ * Download der kompletten Bildstrecke. */
+async function cacheMissing(cache, urls) {
+  const missing = [];
+  for (const url of urls) {
+    if (!(await cache.match(url))) missing.push(url);
+  }
+  // Einzeln cachen: ein einzelner Fehlschlag verhindert die Installation
+  // nicht (das Bild kommt dann zur Laufzeit in den Cache).
+  await Promise.allSettled(missing.map((url) => cache.add(new Request(url, { cache: 'reload' }))));
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then(async (c) => {
-      // cache: 'reload' umgeht den HTTP-Cache des Browsers – sonst landen
-      // beim Update alte Dateistände im neuen Cache.
-      await c.addAll(CORE_ASSETS.map((url) => new Request(url, { cache: 'reload' })));
-      // Bilder einzeln cachen: ein einzelner Fehlschlag verhindert die
-      // Installation nicht (das Bild kommt dann zur Laufzeit in den Cache).
-      await Promise.allSettled(IMG_ASSETS.map((url) => c.add(new Request(url, { cache: 'reload' }))));
-    })
-  );
+  event.waitUntil((async () => {
+    const shell = await caches.open(CACHE);
+    // cache: 'reload' umgeht den HTTP-Cache des Browsers – sonst landen
+    // beim Update alte Dateistände im neuen Cache.
+    await shell.addAll(CORE_ASSETS.map((url) => new Request(url, { cache: 'reload' })));
+    const images = await caches.open(IMG_CACHE);
+    await cacheMissing(images, [...THUMB_ASSETS, ...IMG_ASSETS]);
+  })());
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE && k !== IMG_CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -74,9 +97,10 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) =>
       cached ||
       fetch(event.request).then((res) => {
-        if (res.ok && new URL(event.request.url).origin === location.origin) {
+        const url = new URL(event.request.url);
+        if (res.ok && url.origin === location.origin) {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(event.request, copy));
+          caches.open(isImage(url) ? IMG_CACHE : CACHE).then((c) => c.put(event.request, copy));
         }
         return res;
       })

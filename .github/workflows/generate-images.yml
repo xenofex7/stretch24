@@ -49,12 +49,18 @@ jobs:
           # sonst werden bei jedem Lauf alle Bilder re-encodiert und committet.
           CHANGED=$( { git diff --name-only -- 'assets/img/*.png'; git ls-files --others --exclude-standard -- 'assets/img/*.png'; } | sort -u )
           if [ -z "$CHANGED" ]; then echo "Keine geänderten Bilder."; exit 0; fi
+          mkdir -p assets/img/thumb
           echo "$CHANGED" | while IFS= read -r f; do
             [ -e "$f" ] || continue
+            case "$f" in assets/img/thumb/*) continue;; esac
             convert "$f" -resize '512x512>' -strip "$f"
             pngquant --force --skip-if-larger --quality=65-90 --ext .png "$f" || true
+            # 256er-Thumb fürs Übungsraster (die App lädt im Raster nur diesen).
+            t="assets/img/thumb/$(basename "$f")"
+            convert "$f" -resize 256x256 -strip "$t"
+            pngquant --force --skip-if-larger --quality=60-85 --ext .png "$t" || true
           done
-          ls -la assets/img/
+          ls -la assets/img/ assets/img/thumb/
 
       - name: Committen & pushen
         run: |
