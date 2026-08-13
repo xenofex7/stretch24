@@ -11,12 +11,9 @@ set -euo pipefail
 #   ./scripts/deploy.sh major    # auto-increment major (0.6.5 -> 1.0.0)
 #   ./scripts/deploy.sh v0.2.0   # explicit version
 #
-# Flags:
-#   -q, --quiet   Do not stream the CI run output. Just block until the run
-#                 finishes; on failure, write the failed-step log to a file
-#                 and print only its path. Saves tokens when Claude runs this
-#                 script, because the full streaming watch output is not piped
-#                 back into the conversation.
+# The CI run is never streamed: the script blocks until it finishes and, on
+# failure, writes the failed-step log to a file and prints only its path. That
+# keeps the output small when Claude runs this script.
 #
 # Steps:
 #   1. Validate version argument or auto-increment patch
@@ -51,11 +48,11 @@ warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
 # ── 0. Parse flags ────────────────────────────────────────
-QUIET=0
+# -q/--quiet is still accepted and ignored: the CI watch is always compact now.
 POSITIONAL=()
 for arg in "$@"; do
   case "$arg" in
-    -q|--quiet) QUIET=1 ;;
+    -q|--quiet) ;;
     *) POSITIONAL+=("$arg") ;;
   esac
 done
@@ -324,45 +321,31 @@ if command -v gh &> /dev/null && [[ "${WATCH_CI:-1}" != "0" ]]; then
   sleep 4
   RUN_ID=$(gh run list --branch "$BRANCH" --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || echo "")
   if [[ -n "$RUN_ID" ]]; then
-    if [[ "$QUIET" == "1" ]]; then
-      # Quiet mode: poll status only, no streaming output.
-      # On failure, dump the failed-step log to a file and print just the path.
-      LOG_FILE=".deploy-ci-${RUN_ID}.log"
-      info "Watching CI run #${RUN_ID} (quiet, log on failure: ${LOG_FILE})..."
-      while true; do
-        STATE=$(gh run view "$RUN_ID" --json status,conclusion --jq '.status + "|" + (.conclusion // "")' 2>/dev/null || echo "|")
-        RUN_STATUS="${STATE%|*}"
-        RUN_CONCLUSION="${STATE#*|}"
-        if [[ "$RUN_STATUS" == "completed" ]]; then
-          if [[ "$RUN_CONCLUSION" == "success" ]]; then
-            ok "CI passed"
-          else
-            gh run view "$RUN_ID" --log-failed > "$LOG_FILE" 2>&1 || true
-            echo ""
-            warn "CI FAILED (conclusion: ${RUN_CONCLUSION:-unknown})"
-            warn "Log: ${LOG_FILE}  (or live: gh run view ${RUN_ID} --log-failed)"
-            echo ""
-            echo "  The tag and release exist on GitHub, but the build pipeline did not"
-            echo "  succeed. Fix the issue and push a patch release."
-            exit 1
-          fi
-          break
+    # Poll status only, no streaming output - keeps the caller's context small.
+    # On failure, dump the failed-step log to a file and print just the path.
+    LOG_FILE=".deploy-ci-${RUN_ID}.log"
+    info "Watching CI run #${RUN_ID} (log on failure: ${LOG_FILE})..."
+    while true; do
+      STATE=$(gh run view "$RUN_ID" --json status,conclusion --jq '.status + "|" + (.conclusion // "")' 2>/dev/null || echo "|")
+      RUN_STATUS="${STATE%|*}"
+      RUN_CONCLUSION="${STATE#*|}"
+      if [[ "$RUN_STATUS" == "completed" ]]; then
+        if [[ "$RUN_CONCLUSION" == "success" ]]; then
+          ok "CI passed"
+        else
+          gh run view "$RUN_ID" --log-failed > "$LOG_FILE" 2>&1 || true
+          echo ""
+          warn "CI FAILED (conclusion: ${RUN_CONCLUSION:-unknown})"
+          warn "Log: ${LOG_FILE}  (or live: gh run view ${RUN_ID} --log-failed)"
+          echo ""
+          echo "  The tag and release exist on GitHub, but the build pipeline did not"
+          echo "  succeed. Fix the issue and push a patch release."
+          exit 1
         fi
-        sleep 15
-      done
-    else
-      info "Watching CI run #${RUN_ID}..."
-      if gh run watch "$RUN_ID" --exit-status --interval 10; then
-        ok "CI passed"
-      else
-        echo ""
-        warn "CI FAILED - inspect with: gh run view ${RUN_ID} --log-failed"
-        echo ""
-        echo "  The tag and release exist on GitHub, but the build pipeline did not"
-        echo "  succeed. Fix the issue and push a patch release."
-        exit 1
+        break
       fi
-    fi
+      sleep 15
+    done
   else
     warn "No CI run found to watch (gh run list returned nothing)"
   fi
