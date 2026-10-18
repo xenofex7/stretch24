@@ -316,38 +316,57 @@ fi
 
 # ── 9. Watch the CI run triggered by the push (optional) ─
 # Set WATCH_CI=0 to skip; default is to watch and exit non-zero if CI fails.
+CI_CONFIRMED=1
+
 if command -v gh &> /dev/null && [[ "${WATCH_CI:-1}" != "0" ]]; then
-  info "Waiting briefly for CI to register the run..."
-  sleep 4
-  RUN_ID=$(gh run list --branch "$BRANCH" --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || echo "")
-  if [[ -n "$RUN_ID" ]]; then
-    # Poll status only, no streaming output - keeps the caller's context small.
-    # On failure, dump the failed-step log to a file and print just the path.
-    LOG_FILE=".deploy-ci-${RUN_ID}.log"
-    info "Watching CI run #${RUN_ID} (log on failure: ${LOG_FILE})..."
-    while true; do
-      STATE=$(gh run view "$RUN_ID" --json status,conclusion --jq '.status + "|" + (.conclusion // "")' 2>/dev/null || echo "|")
-      RUN_STATUS="${STATE%|*}"
-      RUN_CONCLUSION="${STATE#*|}"
-      if [[ "$RUN_STATUS" == "completed" ]]; then
-        if [[ "$RUN_CONCLUSION" == "success" ]]; then
-          ok "CI passed"
-        else
-          gh run view "$RUN_ID" --log-failed > "$LOG_FILE" 2>&1 || true
-          echo ""
-          warn "CI FAILED (conclusion: ${RUN_CONCLUSION:-unknown})"
-          warn "Log: ${LOG_FILE}  (or live: gh run view ${RUN_ID} --log-failed)"
-          echo ""
-          echo "  The tag and release exist on GitHub, but the build pipeline did not"
-          echo "  succeed. Fix the issue and push a patch release."
-          exit 1
-        fi
-        break
-      fi
-      sleep 15
-    done
+  RELEASE_SHA=$(git rev-parse HEAD)
+
+  # Match the run by commit, never by branch: a tag push produces a run whose
+  # headBranch is the TAG, so --branch "$BRANCH" silently picks an older run on
+  # the branch and reports its result as if it belonged to this release.
+  # Runs take a few seconds to register, so retry before giving up.
+  info "Looking for the CI run of ${RELEASE_SHA:0:7}..."
+  RUN_IDS=""
+  for _ in 1 2 3 4 5 6 7 8; do
+    RUN_IDS=$(gh run list --limit 30 --json databaseId,headSha \
+                --jq '.[] | select(.headSha=="'"$RELEASE_SHA"'") | .databaseId' 2>/dev/null || echo "")
+    [[ -n "$RUN_IDS" ]] && break
+    sleep 5
+  done
+
+  if [[ -z "$RUN_IDS" ]]; then
+    CI_CONFIRMED=0
+    warn "No CI run found for ${RELEASE_SHA:0:7} after 40s - the build is NOT confirmed"
+    warn "Check manually: gh run list --limit 5"
   else
-    warn "No CI run found to watch (gh run list returned nothing)"
+    # This commit can carry several workflows - watch every run, not just one.
+    for RUN_ID in $RUN_IDS; do
+      # Poll status only, no streaming output - keeps the caller's context small.
+      # On failure, dump the failed-step log to a file and print just the path.
+      LOG_FILE=".deploy-ci-${RUN_ID}.log"
+      info "Watching CI run #${RUN_ID} (log on failure: ${LOG_FILE})..."
+      while true; do
+        STATE=$(gh run view "$RUN_ID" --json status,conclusion --jq '.status + "|" + (.conclusion // "")' 2>/dev/null || echo "|")
+        RUN_STATUS="${STATE%|*}"
+        RUN_CONCLUSION="${STATE#*|}"
+        if [[ "$RUN_STATUS" == "completed" ]]; then
+          if [[ "$RUN_CONCLUSION" == "success" ]]; then
+            ok "CI run ${RUN_ID} passed"
+          else
+            gh run view "$RUN_ID" --log-failed > "$LOG_FILE" 2>&1 || true
+            echo ""
+            warn "CI FAILED (conclusion: ${RUN_CONCLUSION:-unknown})"
+            warn "Log: ${LOG_FILE}  (or live: gh run view ${RUN_ID} --log-failed)"
+            echo ""
+            echo "  The tag and release exist on GitHub, but the build pipeline did not"
+            echo "  succeed. Fix the issue and push a patch release."
+            exit 1
+          fi
+          break
+        fi
+        sleep 15
+      done
+    done
   fi
 fi
 
@@ -356,4 +375,7 @@ echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━
 echo -e "${GREEN}  Release ${TAG} complete!${NC}"
 echo -e "${GREEN}  ${SLOGAN}${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+if [[ "$CI_CONFIRMED" != "1" ]]; then
+  warn "The build was not confirmed - verify it before relying on this release"
+fi
 echo ""
